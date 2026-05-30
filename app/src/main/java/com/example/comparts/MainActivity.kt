@@ -1,36 +1,27 @@
+// File path: app/src/main/java/com/example/comparts/MainActivity.kt
 package com.example.comparts
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.example.comparts.ui.theme.ComPartsTheme
-import io.github.jan.supabase.postgrest.from
-import androidx.compose.foundation.lazy.items
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.comparts.data.model.Item
-import com.example.comparts.data.remote.SupabaseClient
+import com.example.comparts.navigation.Screen
 import com.example.comparts.ui.components.BottomBar
+import com.example.comparts.ui.pages.auth.LoginScreen
+import com.example.comparts.ui.pages.auth.SignupScreen
 import com.example.comparts.ui.pages.home.HomeScreen
 import com.example.comparts.ui.pages.items.ItemScreen
-
+import com.example.comparts.ui.pages.report.ReportScreen
+import com.example.comparts.ui.pages.supplier.SupplierScreen
+import com.example.comparts.ui.pages.transaction.TransactionScreen
+import com.example.comparts.ui.theme.ComPartsTheme
 
 class MainActivity : ComponentActivity() {
 
@@ -38,30 +29,60 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-
             ComPartsTheme {
+                val navController = rememberNavController()
 
-                val navController =
-                    rememberNavController()
+                // Track current route to hide bottom bar on Auth screens
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
+                val showBottomBar = currentRoute in listOf(
+                    Screen.Home.route,
+                    Screen.Items.route,
+                    Screen.Transaction.route,
+                    Screen.Supplier.route,
+                    Screen.Report.route
+                )
 
                 Scaffold(
                     bottomBar = {
-                        BottomBar(navController)
+                        if (showBottomBar) {
+                            BottomBar(navController)
+                        }
                     }
                 ) { padding ->
-
                     NavHost(
                         navController = navController,
-                        startDestination = "home",
+                        startDestination = Screen.Login.route, // Set Login as the initial screen
                         modifier = Modifier.padding(padding)
                     ) {
+                        // --- Auth Routes ---
+                        composable(Screen.Login.route) {
+                            LoginScreen(navController)
+                        }
 
-                        composable("home") {
+                        composable(Screen.Signup.route) {
+                            SignupScreen(navController)
+                        }
+
+                        // --- Main App Routes ---
+                        composable(Screen.Home.route) {
                             HomeScreen()
                         }
 
-                        composable("items") {
+                        composable(Screen.Items.route) {
                             ItemScreen()
+                        }
+
+                        composable(Screen.Transaction.route) {
+                            TransactionScreen()
+                        }
+
+                        composable(Screen.Supplier.route) {
+                            SupplierScreen()
+                        }
+
+                        composable(Screen.Report.route) {
+                            ReportScreen()
                         }
                     }
                 }

@@ -7,9 +7,8 @@ import io.github.jan.supabase.postgrest.from
 class ItemRepository {
 
     suspend fun getItems(): List<Item> {
-
         return SupabaseClient.client
-            .from("item")
+            .from("Item")
             .select()
             .decodeList<Item>()
     }
