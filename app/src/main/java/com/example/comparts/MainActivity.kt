@@ -17,6 +17,8 @@ import com.example.comparts.ui.components.BottomBar
 import com.example.comparts.ui.pages.auth.LoginScreen
 import com.example.comparts.ui.pages.auth.SignupScreen
 import com.example.comparts.ui.pages.home.HomeScreen
+import com.example.comparts.ui.pages.items.AddItemScreen
+import com.example.comparts.ui.pages.items.EditItemScreen
 import com.example.comparts.ui.pages.items.ItemScreen
 import com.example.comparts.ui.pages.report.ReportScreen
 import com.example.comparts.ui.pages.supplier.SupplierScreen
@@ -52,7 +54,7 @@ class MainActivity : ComponentActivity() {
                 ) { padding ->
                     NavHost(
                         navController = navController,
-                        startDestination = Screen.Login.route, // Set Login as the initial screen
+                        startDestination = Screen.Home.route, // Set Login as the initial screen
                         modifier = Modifier.padding(padding)
                     ) {
                         // --- Auth Routes ---
@@ -70,7 +72,14 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(Screen.Items.route) {
-                            ItemScreen()
+                            ItemScreen(navController)
+                        }
+
+                        composable("add_item") {
+                            AddItemScreen(navController)
+                        }
+                        composable("edit_item") {
+                            EditItemScreen(navController)
                         }
 
                         composable(Screen.Transaction.route) {

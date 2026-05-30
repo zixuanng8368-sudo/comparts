@@ -2,31 +2,31 @@ package com.example.comparts.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.comparts.data.model.Item
-import com.example.comparts.data.repository.ItemRepository
+import com.example.comparts.data.model.Supplier
+import com.example.comparts.data.repository.SupplierRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class ItemViewModel : ViewModel() {
+class SupplierViewModel : ViewModel() {
 
-    private val repository = ItemRepository()
+    private val repository = SupplierRepository()
 
-    private val _items = MutableStateFlow<List<Item>>(emptyList())
-    val items: StateFlow<List<Item>> = _items
+    private val _suppliers = MutableStateFlow<List<Supplier>>(emptyList())
+    val suppliers: StateFlow<List<Supplier>> = _suppliers
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
 
     init {
-        loadItems()
+        loadSuppliers()
     }
 
-    fun loadItems() {
+    fun loadSuppliers() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                _items.value = repository.getItems()
+                _suppliers.value = repository.getSuppliers()
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {

@@ -1,15 +1,15 @@
 package com.example.comparts.data.repository
 
-import com.example.comparts.data.model.Item
+import com.example.comparts.data.model.Supplier
 import com.example.comparts.data.remote.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 
-class ItemRepository {
+class SupplierRepository {
 
-    suspend fun getItems(): List<Item> {
+    suspend fun getSuppliers(): List<Supplier> {
         return SupabaseClient.client
-            .from("item")
+            .from("supplier")
             .select()
-            .decodeList<Item>()
+            .decodeList<Supplier>()
     }
 }
