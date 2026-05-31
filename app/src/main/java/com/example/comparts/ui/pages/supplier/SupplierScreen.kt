@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.comparts.data.model.Supplier
 import com.example.comparts.ui.components.EmptyState
@@ -21,7 +22,7 @@ import com.example.comparts.ui.components.LoadingState
 import com.example.comparts.viewmodel.SupplierViewModel
 
 @Composable
-fun SupplierScreen(viewModel: SupplierViewModel = viewModel()) {
+fun SupplierScreen(navController: NavController, viewModel: SupplierViewModel = viewModel()) {
     val suppliers by viewModel.suppliers.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
@@ -51,6 +52,19 @@ fun SupplierScreen(viewModel: SupplierViewModel = viewModel()) {
                     }
                 }
             }
+        }
+
+        // Add Button
+        Button(
+            onClick = { navController.navigate("add_supplier") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+                .height(50.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF000080)),
+            shape = RoundedCornerShape(24.dp)
+        ) {
+            Text("+ Add New Supplier", fontSize = 16.sp, color = Color.White)
         }
     }
 }

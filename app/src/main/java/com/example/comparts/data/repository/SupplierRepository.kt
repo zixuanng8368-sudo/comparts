@@ -12,4 +12,20 @@ class SupplierRepository {
             .select()
             .decodeList<Supplier>()
     }
+
+    suspend fun addSupplier(supplier: Supplier) {
+        SupabaseClient.client
+            .from("supplier")
+            .insert(supplier)
+    }
+
+    suspend fun updateSupplier(supplier: Supplier) {
+        SupabaseClient.client
+            .from("supplier")
+            .update(supplier) {
+                filter {
+                    eq("supplier_id", supplier.supplierId)
+                }
+            }
+    }
 }

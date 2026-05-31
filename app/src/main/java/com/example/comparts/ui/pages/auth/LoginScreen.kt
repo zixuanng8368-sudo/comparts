@@ -14,11 +14,25 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.comparts.viewmodel.AuthState
+import com.example.comparts.viewmodel.AuthViewModel
+
 @Composable
-fun LoginScreen(navController: NavController) {
+fun LoginScreen(navController: NavController, viewModel: AuthViewModel = viewModel()) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var rememberMe by remember { mutableStateOf(false) }
+    val authState by viewModel.authState.collectAsState()
+
+    LaunchedEffect(authState) {
+        if (authState is AuthState.Success) {
+            navController.navigate("home") {
+                popUpTo("login") { inclusive = true }
+            }
+        }
+    }
+
 
     // Colors to match the mockup
     val primaryPurple = Color(0xFF6B58F5)
@@ -125,24 +139,31 @@ fun LoginScreen(navController: NavController) {
 
             Button(
                 onClick = {
-                    println("--- LOGIN INPUT ---")
-                    println("Email: $email")
-                    println("Password: $password")
-                    println("Remember Me: $rememberMe")
-
-                    // Temporary test navigation directly to home after printing
-                    navController.navigate("home") {
-                        popUpTo("login") { inclusive = true }
-                    }
+                    viewModel.signIn(email, password)
                 },
+                enabled = authState !is AuthState.Loading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = primaryPurple),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Login", fontSize = 16.sp)
+                if (authState is AuthState.Loading) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                } else {
+                    Text("Login", fontSize = 16.sp)
+                }
             }
+
+            if (authState is AuthState.Error) {
+                Text(
+                    text = (authState as AuthState.Error).message,
+                    color = Color.Red,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+
         }
 
         Spacer(modifier = Modifier.weight(1f))

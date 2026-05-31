@@ -34,4 +34,32 @@ class ItemViewModel : ViewModel() {
             }
         }
     }
+
+    suspend fun getItemById(itemId: String): Item? {
+        return repository.getItemById(itemId)
+    }
+
+    fun addItem(item: Item, onComplete: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                repository.addItem(item)
+                loadItems()
+                onComplete()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun updateItem(item: Item, onComplete: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                repository.updateItem(item)
+                loadItems()
+                onComplete()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 }

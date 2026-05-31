@@ -16,11 +16,25 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.comparts.viewmodel.AuthState
+import com.example.comparts.viewmodel.AuthViewModel
+
 @Composable
-fun SignupScreen(navController: NavController) {
+fun SignupScreen(navController: NavController, viewModel: AuthViewModel = viewModel()) {
     var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    val authState by viewModel.authState.collectAsState()
+
+    LaunchedEffect(authState) {
+        if (authState is AuthState.Success) {
+            navController.navigate("home") {
+                popUpTo("signup") { inclusive = true }
+            }
+        }
+    }
+
 
     // Colors to match the mockup
     val primaryPurple = Color(0xFF6B58F5)
@@ -106,19 +120,31 @@ fun SignupScreen(navController: NavController) {
 
         Button(
             onClick = {
-                println("--- REGISTRATION INPUT ---")
-                println("Username: $username")
-                println("Email: $email")
-                println("Password: $password")
+                viewModel.signUp(email, password)
             },
+            enabled = authState !is AuthState.Loading,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
             colors = ButtonDefaults.buttonColors(containerColor = primaryPurple),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text("Sign Up", fontSize = 16.sp)
+            if (authState is AuthState.Loading) {
+                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+            } else {
+                Text("Sign Up", fontSize = 16.sp)
+            }
         }
+
+        if (authState is AuthState.Error) {
+            Text(
+                text = (authState as AuthState.Error).message,
+                color = Color.Red,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
+
 
         Spacer(modifier = Modifier.weight(1f))
 

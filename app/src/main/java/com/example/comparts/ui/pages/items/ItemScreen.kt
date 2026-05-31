@@ -87,7 +87,7 @@ fun ItemScreen(navController: NavController, viewModel: ItemViewModel = viewMode
                                 stockStatus = if (item.itemStockQuantity > 0) "${item.itemStockQuantity} UNITS" else "OUT OF STOCK",
                                 badgeColor = if (item.itemStockQuantity > 5) healthyGreen else criticalRed,
                                 cardColor = primaryBlue,
-                                onClick = { navController.navigate("edit_item") }
+                                onClick = { navController.navigate("edit_item/${item.itemId}") }
                             )
                         }
                     }

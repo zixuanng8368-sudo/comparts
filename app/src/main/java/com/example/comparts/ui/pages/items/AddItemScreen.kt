@@ -7,7 +7,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,11 +16,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.comparts.data.model.Item
 import com.example.comparts.ui.components.BlueTextField
+import com.example.comparts.viewmodel.ItemViewModel
+import java.util.UUID
 
 @Composable
-fun AddItemScreen(navController: NavController) {
+fun AddItemScreen(navController: NavController, viewModel: ItemViewModel = viewModel()) {
     var itemName by remember { mutableStateOf("") }
     var itemSku by remember { mutableStateOf("") }
     var itemCategory by remember { mutableStateOf("") }
@@ -41,7 +45,7 @@ fun AddItemScreen(navController: NavController) {
             .verticalScroll(rememberScrollState())
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 24.dp, top = 8.dp)) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Back", modifier = Modifier.clickable { navController.popBackStack() })
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", modifier = Modifier.clickable { navController.popBackStack() })
             Spacer(modifier = Modifier.width(16.dp))
             Text("Add New Item", fontSize = 22.sp, fontWeight = FontWeight.Bold)
         }
@@ -73,7 +77,24 @@ fun AddItemScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = { navController.popBackStack() },
+            onClick = {
+                if (itemName.isNotBlank()) {
+                    val newItem = Item(
+                        itemId = UUID.randomUUID().toString(),
+                        itemName = itemName,
+                        itemSku = itemSku,
+                        itemPrice = itemPrice.toDoubleOrNull() ?: 0.0,
+                        itemStockQuantity = currentStock.toIntOrNull() ?: 0,
+                        itemMinStockLevel = minThreshold.toIntOrNull() ?: 0,
+                        categoryId = if (itemCategory.isNotBlank()) itemCategory else null,
+                        supplierId = if (supplier.isNotBlank()) supplier else null,
+                        itemReference = description
+                    )
+                    viewModel.addItem(newItem) {
+                        navController.popBackStack()
+                    }
+                }
+            },
             modifier = Modifier.fillMaxWidth().height(50.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF000080)),
             shape = RoundedCornerShape(24.dp)

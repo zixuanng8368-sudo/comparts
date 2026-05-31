@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Item(
-    @SerialName("item_id") val itemId: String = "", // UUID from Supabase
+    @SerialName("item_id") val itemId: String = "",
     @SerialName("item_sku") val itemSku: String,
     @SerialName("item_name") val itemName: String,
     @SerialName("category_id") val categoryId: String? = null, // Foreign Key

@@ -34,4 +34,16 @@ class SupplierViewModel : ViewModel() {
             }
         }
     }
+
+    fun addSupplier(supplier: Supplier, onComplete: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                repository.addSupplier(supplier)
+                loadSuppliers()
+                onComplete()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 }

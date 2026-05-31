@@ -20,7 +20,9 @@ import com.example.comparts.ui.pages.home.HomeScreen
 import com.example.comparts.ui.pages.items.AddItemScreen
 import com.example.comparts.ui.pages.items.EditItemScreen
 import com.example.comparts.ui.pages.items.ItemScreen
+import com.example.comparts.ui.pages.profile.ProfileScreen
 import com.example.comparts.ui.pages.report.ReportScreen
+import com.example.comparts.ui.pages.supplier.AddSupplierScreen
 import com.example.comparts.ui.pages.supplier.SupplierScreen
 import com.example.comparts.ui.pages.transaction.TransactionScreen
 import com.example.comparts.ui.theme.ComPartsTheme
@@ -54,7 +56,7 @@ class MainActivity : ComponentActivity() {
                 ) { padding ->
                     NavHost(
                         navController = navController,
-                        startDestination = Screen.Home.route, // Set Login as the initial screen
+                        startDestination = Screen.Login.route, // Set Login as the initial screen
                         modifier = Modifier.padding(padding)
                     ) {
                         // --- Auth Routes ---
@@ -68,7 +70,7 @@ class MainActivity : ComponentActivity() {
 
                         // --- Main App Routes ---
                         composable(Screen.Home.route) {
-                            HomeScreen()
+                            HomeScreen(navController)
                         }
 
                         composable(Screen.Items.route) {
@@ -78,8 +80,9 @@ class MainActivity : ComponentActivity() {
                         composable("add_item") {
                             AddItemScreen(navController)
                         }
-                        composable("edit_item") {
-                            EditItemScreen(navController)
+                        composable("edit_item/{itemId}") { backStackEntry ->
+                            val itemId = backStackEntry.arguments?.getString("itemId")
+                            EditItemScreen(navController, itemId)
                         }
 
                         composable(Screen.Transaction.route) {
@@ -87,11 +90,19 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(Screen.Supplier.route) {
-                            SupplierScreen()
+                            SupplierScreen(navController)
+                        }
+
+                        composable("add_supplier") {
+                            AddSupplierScreen(navController)
                         }
 
                         composable(Screen.Report.route) {
                             ReportScreen()
+                        }
+
+                        composable(Screen.Profile.route) {
+                            ProfileScreen(navController)
                         }
                     }
                 }
