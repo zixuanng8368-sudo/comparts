@@ -14,6 +14,7 @@ data class Item(
     @SerialName("item_price") val itemPrice: Double,
     @SerialName("item_stock_quantity") val itemStockQuantity: Int,
     @SerialName("item_min_stock_level") val itemMinStockLevel: Int,
+    @SerialName("item_image_url") val itemImageUrl: String? = null,
     @SerialName("supplier_id") val supplierId: String? = null, // Foreign Key
     @SerialName("created_at") val createdAt: String? = null,
     @SerialName("updated_at") val updatedAt: String? = null

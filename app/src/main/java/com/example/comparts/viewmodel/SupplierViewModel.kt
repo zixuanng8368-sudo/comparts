@@ -35,10 +35,26 @@ class SupplierViewModel : ViewModel() {
         }
     }
 
+    suspend fun getSupplierById(supplierId: String): Supplier? {
+        return repository.getSupplierById(supplierId)
+    }
+
     fun addSupplier(supplier: Supplier, onComplete: () -> Unit) {
         viewModelScope.launch {
             try {
                 repository.addSupplier(supplier)
+                loadSuppliers()
+                onComplete()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun updateSupplier(supplier: Supplier, onComplete: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                repository.updateSupplier(supplier)
                 loadSuppliers()
                 onComplete()
             } catch (e: Exception) {

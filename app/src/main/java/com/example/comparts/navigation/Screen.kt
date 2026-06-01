@@ -8,6 +8,7 @@ sealed class Screen(val route: String) {
     object Supplier : Screen("supplier")
     object Report : Screen("report")
     object Profile : Screen("profile")
+    object Category : Screen("category")
 
     // Existing authentication pages
     object Login : Screen("login")

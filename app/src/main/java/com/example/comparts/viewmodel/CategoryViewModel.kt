@@ -2,31 +2,31 @@ package com.example.comparts.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.comparts.data.model.Transaction
-import com.example.comparts.data.repository.TransactionRepository
+import com.example.comparts.data.model.Category
+import com.example.comparts.data.repository.CategoryRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class TransactionViewModel : ViewModel() {
+class CategoryViewModel : ViewModel() {
 
-    private val repository = TransactionRepository()
+    private val repository = CategoryRepository()
 
-    private val _transactions = MutableStateFlow<List<Transaction>>(emptyList())
-    val transactions: StateFlow<List<Transaction>> = _transactions
+    private val _categories = MutableStateFlow<List<Category>>(emptyList())
+    val categories: StateFlow<List<Category>> = _categories
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
 
     init {
-        loadTransactions()
+        loadCategories()
     }
 
-    fun loadTransactions() {
+    fun loadCategories() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                _transactions.value = repository.getTransactions().sortedByDescending { it.createdAt }
+                _categories.value = repository.getCategories()
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {
@@ -35,11 +35,15 @@ class TransactionViewModel : ViewModel() {
         }
     }
 
-    fun addTransaction(transaction: Transaction, onComplete: () -> Unit) {
+    suspend fun getCategoryById(categoryId: String): Category? {
+        return repository.getCategoryById(categoryId)
+    }
+
+    fun addCategory(category: Category, onComplete: () -> Unit) {
         viewModelScope.launch {
             try {
-                repository.addTransaction(transaction)
-                loadTransactions()
+                repository.addCategory(category)
+                loadCategories()
                 onComplete()
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -47,11 +51,11 @@ class TransactionViewModel : ViewModel() {
         }
     }
 
-    fun updateTransaction(transaction: Transaction, onComplete: () -> Unit) {
+    fun updateCategory(category: Category, onComplete: () -> Unit) {
         viewModelScope.launch {
             try {
-                repository.updateTransaction(transaction)
-                loadTransactions()
+                repository.updateCategory(category)
+                loadCategories()
                 onComplete()
             } catch (e: Exception) {
                 e.printStackTrace()

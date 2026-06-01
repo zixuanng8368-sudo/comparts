@@ -1,3 +1,4 @@
+// File path: app/src/main/java/com/example/comparts/ui/pages/profile/ProfileScreen.kt
 package com.example.comparts.ui.pages.profile
 
 import androidx.compose.foundation.background
@@ -6,42 +7,23 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.comparts.viewmodel.AuthState
-import com.example.comparts.viewmodel.AuthViewModel
 
 @Composable
-fun ProfileScreen(navController: NavController, viewModel: AuthViewModel = viewModel()) {
-    val user = viewModel.currentUser()
-    val authState by viewModel.authState.collectAsState()
-
-    val primaryBlue = Color(0xFF4A61F7)
-    val lightPurple = Color(0xFF6B58F5)
-    val red = Color(0xFFFF4C4C)
-
-    LaunchedEffect(authState) {
-        if (authState is AuthState.Idle) {
-            navController.navigate("login") {
-                popUpTo(0) { inclusive = true }
-            }
-        }
-    }
+fun ProfileScreen(navController: NavController) {
+    var notificationEnabled by remember { mutableStateOf(true) }
 
     Column(
         modifier = Modifier
@@ -49,142 +31,86 @@ fun ProfileScreen(navController: NavController, viewModel: AuthViewModel = viewM
             .background(Color.White)
             .padding(16.dp)
     ) {
-        // Header
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(bottom = 24.dp, top = 8.dp)
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                modifier = Modifier.clickable { navController.popBackStack() }
-            )
+        // Top Header
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 24.dp, top = 8.dp)) {
+            Icon(Icons.Default.ArrowBack, contentDescription = "Back", modifier = Modifier.clickable { navController.popBackStack() })
             Spacer(modifier = Modifier.width(16.dp))
             Text("My Profile", fontSize = 22.sp, fontWeight = FontWeight.Bold)
         }
 
-        // User Info Card
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color.Gray),
-                contentAlignment = Alignment.Center
+        // User Avatar & Info
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Surface(
+                modifier = Modifier.size(72.dp),
+                shape = CircleShape,
+                color = Color(0xFFF0F0F0)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = null,
-                    modifier = Modifier.size(50.dp),
-                    tint = Color.White
-                )
+                Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.padding(16.dp), tint = Color.Gray)
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column {
-                Text(
-                    text = user?.userMetadata?.get("full_name")?.toString() ?: "John Doe",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = user?.email ?: "johndoe@example.com",
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Surface(
-                    color = lightPurple,
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Text(
-                        text = "Admin",
-                        color = Color.White,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                    )
-                }
+                Text("John Doe", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text("Johndoe@example.com", fontSize = 14.sp, color = Color.Gray)
+                Text("Admin", fontSize = 14.sp, color = Color(0xFF4A61F7), fontWeight = FontWeight.SemiBold)
             }
         }
 
-        HorizontalDivider(modifier = Modifier.padding(bottom = 24.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
-        // Menu Items
-        ProfileMenuItem(
-            text = "Edit Profile Information",
-            containerColor = primaryBlue,
-            onClick = {}
+        // Edit Profile Link
+        ListItem(
+            headlineContent = { Text("Edit Profile Information") },
+            trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null) },
+            modifier = Modifier.clickable { navController.navigate("edit_profile") },
+            colors = ListItemDefaults.colors(containerColor = Color.Transparent)
         )
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        // Notification Item with toggle-like text
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = lightPurple)
-        ) {
-            Row(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Notification", color = Color.White, fontWeight = FontWeight.Bold)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("On", color = Color(0xFF00C853), fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(Color(0xFF00C853)))
-                }
-            }
-        }
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        ProfileMenuItem(
-            text = "Change Password",
-            containerColor = primaryBlue,
-            onClick = {}
+
+        HorizontalDivider(color = Color(0xFFF0F0F0))
+
+        // Notification Toggle
+        ListItem(
+            headlineContent = { Text("Notification") },
+            supportingContent = { Text("Items that are low in stocks") },
+            trailingContent = {
+                Switch(
+                    checked = notificationEnabled,
+                    onCheckedChange = { notificationEnabled = it },
+                    colors = SwitchDefaults.colors(checkedThumbColor = Color(0xFF4A61F7), checkedTrackColor = Color(0x664A61F7))
+                )
+            },
+            colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+        )
+
+        HorizontalDivider(color = Color(0xFFF0F0F0))
+
+        // Change Password Link
+        ListItem(
+            headlineContent = { Text("Change Password") },
+            trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null) },
+            modifier = Modifier.clickable { navController.navigate("change_password") },
+            colors = ListItemDefaults.colors(containerColor = Color.Transparent)
         )
 
         Spacer(modifier = Modifier.weight(1f))
 
         // Logout Button
         Button(
-            onClick = { viewModel.signOut() },
+            onClick = {
+                // Clear backstack and go to login
+                navController.navigate("login") {
+                    popUpTo(0) { inclusive = true }
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(55.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = red),
-            shape = RoundedCornerShape(16.dp)
+                .height(50.dp)
+                .padding(bottom = 16.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4C4C)),
+            shape = RoundedCornerShape(24.dp)
         ) {
-            Text("Logout", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
-        }
-        Spacer(modifier = Modifier.height(24.dp))
-    }
-}
-
-@Composable
-fun ProfileMenuItem(text: String, containerColor: Color, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = containerColor)
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(text, color = Color.White, fontWeight = FontWeight.Bold)
-            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.Black)
+            Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Logout", tint = Color.White)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Logout", fontSize = 16.sp, color = Color.White, fontWeight = FontWeight.Bold)
         }
     }
 }

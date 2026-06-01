@@ -3,6 +3,7 @@ package com.example.comparts.data.repository
 import com.example.comparts.data.model.Item
 import com.example.comparts.data.remote.SupabaseClient
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.storage.storage
 
 class ItemRepository {
 
@@ -38,5 +39,14 @@ class ItemRepository {
                     eq("item_id", item.itemId)
                 }
             }
+    }
+
+    suspend fun uploadItemImage(itemId: String, imageBytes: ByteArray): String {
+        val fileName = "item_$itemId.jpg"
+        val bucket = SupabaseClient.client.storage["item-images"]
+        bucket.upload(fileName, imageBytes) {
+            upsert = true
+        }
+        return bucket.publicUrl(fileName)
     }
 }

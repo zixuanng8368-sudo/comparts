@@ -11,9 +11,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 
 @Composable
 fun EmptyState(message: String) {
@@ -40,8 +42,15 @@ fun LoadingState() {
 
 @Composable
 fun InventoryCard(
-    category: String, name: String, sku: String, price: String,
-    stockStatus: String, badgeColor: Color, cardColor: Color,
+    category: String,
+    name: String,
+    sku: String,
+    price: String,
+    quantity: String,
+    stockStatus: String,
+    badgeColor: Color,
+    cardColor: Color,
+    imageUrl: String?,
     onClick: () -> Unit
 ) {
     Card(
@@ -53,12 +62,24 @@ fun InventoryCard(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Circle Badge
+            // Item Image
             Box(
-                modifier = Modifier.size(50.dp).clip(CircleShape).background(Color(0xFF2C3E50)),
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.White.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(category, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                if (!imageUrl.isNullOrBlank()) {
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Text(category.take(1).uppercase(), color = Color.White, fontWeight = FontWeight.Bold)
+                }
             }
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -66,8 +87,13 @@ fun InventoryCard(
             // Item Info
             Column(modifier = Modifier.weight(1f)) {
                 Text(name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Text(sku, color = Color(0xFFB0C4DE), fontSize = 12.sp)
-                Text(price, color = Color(0xFFB0C4DE), fontSize = 12.sp)
+                Text("SKU: $sku", color = Color(0xFFB0C4DE), fontSize = 12.sp)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Cat: $category", color = Color(0xFFB0C4DE), fontSize = 12.sp)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(price, color = Color(0xFFB0C4DE), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+                Text("Qty: $quantity", color = Color(0xFFB0C4DE), fontSize = 12.sp)
             }
 
             // Stock Badge

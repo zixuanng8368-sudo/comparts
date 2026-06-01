@@ -1,12 +1,15 @@
-// File path: app/src/main/java/com/example/comparts/ui/pages/supplier/SupplierScreen.kt
 package com.example.comparts.ui.pages.supplier
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,10 +24,13 @@ import com.example.comparts.ui.components.EmptyState
 import com.example.comparts.ui.components.LoadingState
 import com.example.comparts.viewmodel.SupplierViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SupplierScreen(navController: NavController, viewModel: SupplierViewModel = viewModel()) {
     val suppliers by viewModel.suppliers.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    var searchQuery by remember { mutableStateOf("") }
+    var isRefreshing by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -37,18 +43,48 @@ fun SupplierScreen(navController: NavController, viewModel: SupplierViewModel = 
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Box(modifier = Modifier.weight(1f)) {
-            if (isLoading) {
+        // Search Bar
+        TextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            placeholder = { Text("Search Suppliers", color = Color.Gray) },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.Gray) },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color(0xFFF0F0F0),
+                unfocusedContainerColor = Color(0xFFF0F0F0),
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = {
+                isRefreshing = true
+                viewModel.loadSuppliers()
+                isRefreshing = false
+            },
+            modifier = Modifier.weight(1f)
+        ) {
+            val filteredSuppliers = suppliers.filter { it.supplierName.contains(searchQuery, ignoreCase = true) }
+            
+            if (isLoading && suppliers.isEmpty()) {
                 LoadingState()
-            } else if (suppliers.isEmpty()) {
+            } else if (filteredSuppliers.isEmpty()) {
                 EmptyState(message = "Keep track of your parts providers here.")
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(suppliers) { supplier ->
-                        SupplierCard(supplier)
+                    items(filteredSuppliers) { supplier ->
+                        SupplierCard(supplier, onClick = {
+                            navController.navigate("edit_supplier/${supplier.supplierId}")
+                        })
                     }
                 }
             }
@@ -70,9 +106,9 @@ fun SupplierScreen(navController: NavController, viewModel: SupplierViewModel = 
 }
 
 @Composable
-fun SupplierCard(supplier: Supplier) {
+fun SupplierCard(supplier: Supplier, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F2FF))
     ) {

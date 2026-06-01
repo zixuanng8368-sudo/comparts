@@ -13,6 +13,17 @@ class SupplierRepository {
             .decodeList<Supplier>()
     }
 
+    suspend fun getSupplierById(supplierId: String): Supplier? {
+        return SupabaseClient.client
+            .from("supplier")
+            .select {
+                filter {
+                    eq("supplier_id", supplierId)
+                }
+            }
+            .decodeSingleOrNull<Supplier>()
+    }
+
     suspend fun addSupplier(supplier: Supplier) {
         SupabaseClient.client
             .from("supplier")
