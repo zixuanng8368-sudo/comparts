@@ -35,10 +35,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.comparts.data.model.Item
+import com.example.comparts.data.remote.SupabaseClient
 import com.example.comparts.ui.components.BlueTextField
 import com.example.comparts.viewmodel.ItemViewModel
 import com.example.comparts.viewmodel.CategoryViewModel
 import com.example.comparts.viewmodel.SupplierViewModel
+import io.github.jan.supabase.auth.auth
 import java.io.ByteArrayOutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -300,7 +302,7 @@ fun EditItemScreen(
                         if (bitmap != null) {
                             val stream = ByteArrayOutputStream()
                             bitmap!!.compress(Bitmap.CompressFormat.JPEG, 80, stream)
-                            itemViewModel.uploadImage(item.itemId, stream.toByteArray(), updateAction)
+                            itemViewModel.uploadImage(item.itemId, stream.toByteArray(), item.itemImageUrl, updateAction)
                         } else {
                             updateAction(null)
                         }

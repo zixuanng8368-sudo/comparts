@@ -63,10 +63,12 @@ class ItemViewModel : ViewModel() {
         }
     }
 
-    fun uploadImage(itemId: String, imageBytes: ByteArray, onComplete: (String?) -> Unit) {
+    fun uploadImage(itemId: String, imageBytes: ByteArray, oldImageUrl: String? = null, onComplete: (String?) -> Unit) {
         viewModelScope.launch {
             try {
-                val url = repository.uploadItemImage(itemId, imageBytes)
+                // Use a timestamped filename to avoid caching issues
+                val fileName = "item_${itemId}_${System.currentTimeMillis()}.jpg"
+                val url = repository.uploadItemImage(imageBytes, fileName, oldImageUrl)
                 onComplete(url)
             } catch (e: Exception) {
                 println("ERROR: Image upload failed: ${e.message}")

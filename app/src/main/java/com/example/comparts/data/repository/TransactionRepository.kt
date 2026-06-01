@@ -14,52 +14,71 @@ class TransactionRepository {
     }
 
     suspend fun addTransaction(transaction: Transaction) {
+        // 1. Add the transaction record
         SupabaseClient.client
             .from("transaction")
             .insert(transaction)
             
-        // Also update item quantity
-        updateItemQuantity(transaction.itemId, transaction.transactionType, transaction.transactionQuantity)
+        // 2. Fetch current item to update stock
+        val item = SupabaseClient.client.from("item").select {
+            filter { eq("item_id", transaction.itemId) }
+        }.decodeSingleOrNull<com.example.comparts.data.model.Item>()
+        
+        item?.let {
+            // Delta calculation
+            val newQty = if (transaction.transactionType == "IN") {
+                it.itemStockQuantity + transaction.transactionQuantity
+            } else {
+                it.itemStockQuantity - transaction.transactionQuantity
+            }
+            
+            // Save back to DB
+            SupabaseClient.client.from("item").update(mapOf("item_stock_quantity" to newQty)) {
+                filter { eq("item_id", transaction.itemId) }
+            }
+        }
     }
 
     suspend fun updateTransaction(transaction: Transaction) {
-        // We might need the old transaction to revert its stock change before applying the new one
+        // 1. Fetch the old transaction state
         val oldTransaction = SupabaseClient.client.from("transaction").select {
             filter { eq("transaction_id", transaction.transactionId) }
         }.decodeSingleOrNull<Transaction>()
 
-        oldTransaction?.let { old ->
-            // Revert old stock change
-            val revertType = if (old.transactionType == "IN") "OUT" else "IN"
-            updateItemQuantity(old.itemId, revertType, old.transactionQuantity)
-        }
-
-        // Apply new transaction
-        SupabaseClient.client
-            .from("transaction")
-            .update(transaction) {
-                filter { eq("transaction_id", transaction.transactionId) }
-            }
-        
-        // Apply new stock change
-        updateItemQuantity(transaction.itemId, transaction.transactionType, transaction.transactionQuantity)
-    }
-
-    private suspend fun updateItemQuantity(itemId: String, type: String, qty: Int) {
+        // 2. Fetch the current item state
         val item = SupabaseClient.client.from("item").select {
-            filter { eq("item_id", itemId) }
+            filter { eq("item_id", transaction.itemId) }
         }.decodeSingleOrNull<com.example.comparts.data.model.Item>()
-        
-        item?.let {
-            val newQty = if (type == "IN") {
-                it.itemStockQuantity + qty
+
+        if (oldTransaction != null && item != null) {
+            // Delta Reconciliation Logic
+            var adjustedStock = item.itemStockQuantity
+
+            // Step 1: Revert previous state impact
+            if (oldTransaction.transactionType == "IN") {
+                adjustedStock -= oldTransaction.transactionQuantity
             } else {
-                it.itemStockQuantity - qty
+                adjustedStock += oldTransaction.transactionQuantity
+            }
+
+            // Step 2: Inject new input parameters
+            if (transaction.transactionType == "IN") {
+                adjustedStock += transaction.transactionQuantity
+            } else {
+                adjustedStock -= transaction.transactionQuantity
+            }
+
+            // Step 3: Save adjustedStock back to the item table
+            SupabaseClient.client.from("item").update(mapOf("item_stock_quantity" to adjustedStock)) {
+                filter { eq("item_id", transaction.itemId) }
             }
             
-            SupabaseClient.client.from("item").update(mapOf("item_stock_quantity" to newQty)) {
-                filter { eq("item_id", itemId) }
-            }
+            // Step 4: Update the transaction record itself
+            SupabaseClient.client
+                .from("transaction")
+                .update(transaction) {
+                    filter { eq("transaction_id", transaction.transactionId) }
+                }
         }
     }
 }

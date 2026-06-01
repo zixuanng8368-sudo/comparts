@@ -13,4 +13,5 @@ sealed class Screen(val route: String) {
     // Existing authentication pages
     object Login : Screen("login")
     object Signup : Screen("signup")
+    object ItemDetail : Screen("item_detail/{itemId}")
 }

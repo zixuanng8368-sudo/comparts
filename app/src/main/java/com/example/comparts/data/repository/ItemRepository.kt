@@ -41,10 +41,22 @@ class ItemRepository {
             }
     }
 
-    suspend fun uploadItemImage(itemId: String, imageBytes: ByteArray): String {
-        val fileName = "item_$itemId.jpg"
-        val bucket = SupabaseClient.client.storage["item-images"]
-        bucket.upload(fileName, imageBytes) {
+    suspend fun uploadItemImage(byteArray: ByteArray, fileName: String, oldImageUrl: String? = null): String {
+        val bucket = SupabaseClient.client.storage.from("item-images")
+        
+        // Try to delete the old image if it exists and is different from the new one
+        oldImageUrl?.let { url ->
+            try {
+                val oldFileName = url.substringAfterLast("/")
+                if (oldFileName != fileName) {
+                    bucket.delete(oldFileName)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        bucket.upload(fileName, byteArray) {
             upsert = true
         }
         return bucket.publicUrl(fileName)

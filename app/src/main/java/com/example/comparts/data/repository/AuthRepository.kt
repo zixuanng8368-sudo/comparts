@@ -23,5 +23,7 @@ class AuthRepository {
         SupabaseClient.client.auth.signOut()
     }
 
+    suspend fun retrieveUser() = SupabaseClient.client.auth.retrieveUserForCurrentSession(updateSession = true)
+
     fun getCurrentUser() = SupabaseClient.client.auth.currentUserOrNull()
 }

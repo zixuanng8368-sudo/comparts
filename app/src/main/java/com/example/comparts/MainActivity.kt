@@ -20,6 +20,7 @@ import com.example.comparts.ui.pages.auth.SignupScreen
 import com.example.comparts.ui.pages.home.HomeScreen
 import com.example.comparts.ui.pages.items.AddItemScreen
 import com.example.comparts.ui.pages.items.EditItemScreen
+import com.example.comparts.ui.pages.items.ItemDetailScreen
 import com.example.comparts.ui.pages.items.ItemScreen
 import com.example.comparts.ui.pages.profile.ProfileScreen
 import com.example.comparts.ui.pages.report.ReportScreen
@@ -93,6 +94,10 @@ class MainActivity : ComponentActivity() {
                         // --- Items / Inventory ---
                         composable(Screen.Items.route) { ItemScreen(navController, itemViewModel) }
                         composable("add_item") { AddItemScreen(navController, itemViewModel) }
+                        composable("item_detail/{itemId}") { backStackEntry ->
+                            val itemId = backStackEntry.arguments?.getString("itemId")
+                            ItemDetailScreen(navController, itemId, itemViewModel, transactionViewModel, categoryViewModel, supplierViewModel)
+                        }
                         composable("edit_item/{itemId}") { backStackEntry ->
                             val itemId = backStackEntry.arguments?.getString("itemId")
                             EditItemScreen(navController, itemViewModel, itemId)

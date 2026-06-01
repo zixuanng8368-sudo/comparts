@@ -121,7 +121,7 @@ fun ItemScreen(
                                 badgeColor = if (item.itemStockQuantity > item.itemMinStockLevel) healthyGreen else criticalRed,
                                 cardColor = primaryBlue,
                                 imageUrl = item.itemImageUrl,
-                                onClick = { navController.navigate("edit_item/${item.itemId}") }
+                                onClick = { navController.navigate("item_detail/${item.itemId}") }
                             )
                         }
                     }

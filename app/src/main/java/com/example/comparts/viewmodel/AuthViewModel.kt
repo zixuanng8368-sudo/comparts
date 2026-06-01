@@ -49,6 +49,8 @@ class AuthViewModel : ViewModel() {
     }
 
     fun currentUser() = repository.getCurrentUser()
+
+    suspend fun getFullUser() = repository.retrieveUser()
 }
 
 sealed class AuthState {

@@ -9,13 +9,13 @@ data class Item(
     @SerialName("item_id") val itemId: String = "",
     @SerialName("item_sku") val itemSku: String,
     @SerialName("item_name") val itemName: String,
-    @SerialName("category_id") val categoryId: String? = null, // Foreign Key
+    @SerialName("category_id") val categoryId: String? = null,
     @SerialName("item_reference") val itemReference: String? = null,
     @SerialName("item_price") val itemPrice: Double,
     @SerialName("item_stock_quantity") val itemStockQuantity: Int,
     @SerialName("item_min_stock_level") val itemMinStockLevel: Int,
     @SerialName("item_image_url") val itemImageUrl: String? = null,
-    @SerialName("supplier_id") val supplierId: String? = null, // Foreign Key
+    @SerialName("supplier_id") val supplierId: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
     @SerialName("updated_at") val updatedAt: String? = null
 )

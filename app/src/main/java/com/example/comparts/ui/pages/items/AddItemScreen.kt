@@ -34,11 +34,13 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.comparts.data.model.Item
+import com.example.comparts.data.remote.SupabaseClient
 import com.example.comparts.ui.components.BlueTextField
 import com.example.comparts.viewmodel.ItemViewModel
 import com.example.comparts.viewmodel.CategoryViewModel
 import com.example.comparts.viewmodel.SupplierViewModel
 import com.example.comparts.util.SkuGenerator
+import io.github.jan.supabase.auth.auth
 import java.io.ByteArrayOutputStream
 import java.util.UUID
 
@@ -61,12 +63,12 @@ fun AddItemScreen(
     
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
     val context = LocalContext.current
-
     val primaryBlue = Color(0xFF4A61F7)
 
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let {
             bitmap = if (Build.VERSION.SDK_INT < 28) {
+                @Suppress("DEPRECATION")
                 MediaStore.Images.Media.getBitmap(context.contentResolver, it)
             } else {
                 val source = ImageDecoder.createSource(context.contentResolver, it)
@@ -200,6 +202,8 @@ fun AddItemScreen(
             }
         }
 
+        BlueTextField(value = minThreshold, onValueChange = { minThreshold = it }, label = "Min. Threshold", placeholder = "0", bgColor = fieldColor, textColor = textColor)
+
         // Supplier Dropdown
         Text(text = "Supplier", color = Color.Gray, fontSize = 14.sp, modifier = Modifier.padding(bottom = 4.dp))
         ExposedDropdownMenuBox(
@@ -248,13 +252,13 @@ fun AddItemScreen(
             onClick = {
                 if (itemName.isNotBlank() && itemSku.isNotBlank()) {
                     val itemId = UUID.randomUUID().toString()
+                    val userId = SupabaseClient.client.auth.currentUserOrNull()?.id
                     
                     if (bitmap != null) {
                         val stream = ByteArrayOutputStream()
                         bitmap!!.compress(Bitmap.CompressFormat.JPEG, 80, stream)
-                        val byteArray = stream.toByteArray()
                         
-                        itemViewModel.uploadImage(itemId, byteArray) { imageUrl ->
+                        itemViewModel.uploadImage(itemId, stream.toByteArray()) { imageUrl ->
                             val newItem = Item(
                                 itemId = itemId,
                                 itemName = itemName,
