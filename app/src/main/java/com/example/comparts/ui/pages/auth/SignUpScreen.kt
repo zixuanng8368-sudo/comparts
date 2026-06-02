@@ -120,7 +120,9 @@ fun SignupScreen(navController: NavController, viewModel: AuthViewModel = viewMo
 
         Button(
             onClick = {
-                viewModel.signUp(email, password)
+                if (email.isNotBlank() && password.isNotBlank() && username.isNotBlank()) {
+                    viewModel.signUp(email, password, username)
+                }
             },
             enabled = authState !is AuthState.Loading,
             modifier = Modifier

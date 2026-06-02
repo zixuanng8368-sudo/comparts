@@ -13,11 +13,11 @@ class AuthViewModel : ViewModel() {
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     val authState: StateFlow<AuthState> = _authState
 
-    fun signUp(email: String, password: String) {
+    fun signUp(email: String, password: String, username: String) {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             try {
-                repository.signUp(email, password)
+                repository.signUp(email, password, username)
                 _authState.value = AuthState.Success
             } catch (e: Exception) {
                 _authState.value = AuthState.Error(e.message ?: "Registration failed")
@@ -49,6 +49,18 @@ class AuthViewModel : ViewModel() {
     }
 
     fun currentUser() = repository.getCurrentUser()
+
+    fun updateUsername(username: String) {
+        viewModelScope.launch {
+            _authState.value = AuthState.Loading
+            try {
+                repository.updateUsername(username)
+                _authState.value = AuthState.Success
+            } catch (e: Exception) {
+                _authState.value = AuthState.Error(e.message ?: "Update failed")
+            }
+        }
+    }
 
     suspend fun getFullUser() = repository.retrieveUser()
 }

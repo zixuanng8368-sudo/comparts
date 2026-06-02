@@ -1,4 +1,3 @@
-// File path: app/src/main/java/com/example/comparts/ui/pages/profile/ProfileScreen.kt
 package com.example.comparts.ui.pages.profile
 
 import androidx.compose.foundation.background
@@ -19,11 +18,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.comparts.viewmodel.AuthViewModel
+import io.github.jan.supabase.auth.user.UserInfo
+import kotlinx.serialization.json.jsonPrimitive
 
 @Composable
-fun ProfileScreen(navController: NavController) {
+fun ProfileScreen(navController: NavController, authViewModel: AuthViewModel = viewModel()) {
     var notificationEnabled by remember { mutableStateOf(true) }
+    var user by remember { mutableStateOf<UserInfo?>(null) }
+    
+    LaunchedEffect(Unit) {
+        user = authViewModel.getFullUser()
+    }
+
+    val username = user?.userMetadata?.get("username")?.jsonPrimitive?.content ?: "User"
+    val email = user?.email ?: "No Email"
 
     Column(
         modifier = Modifier
@@ -49,9 +60,9 @@ fun ProfileScreen(navController: NavController) {
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column {
-                Text("John Doe", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Text("Johndoe@example.com", fontSize = 14.sp, color = Color.Gray)
-                Text("Admin", fontSize = 14.sp, color = Color(0xFF4A61F7), fontWeight = FontWeight.SemiBold)
+                Text(username, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text(email, fontSize = 14.sp, color = Color.Gray)
+                Text("Operator", fontSize = 14.sp, color = Color(0xFF4A61F7), fontWeight = FontWeight.SemiBold)
             }
         }
 
@@ -61,7 +72,7 @@ fun ProfileScreen(navController: NavController) {
         ListItem(
             headlineContent = { Text("Edit Profile Information") },
             trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null) },
-            modifier = Modifier.clickable { navController.navigate("edit_profile") },
+            modifier = Modifier.clickable { /* Navigate to edit profile */ },
             colors = ListItemDefaults.colors(containerColor = Color.Transparent)
         )
 
@@ -87,7 +98,7 @@ fun ProfileScreen(navController: NavController) {
         ListItem(
             headlineContent = { Text("Change Password") },
             trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null) },
-            modifier = Modifier.clickable { navController.navigate("change_password") },
+            modifier = Modifier.clickable { /* Navigate to change password */ },
             colors = ListItemDefaults.colors(containerColor = Color.Transparent)
         )
 
@@ -96,7 +107,7 @@ fun ProfileScreen(navController: NavController) {
         // Logout Button
         Button(
             onClick = {
-                // Clear backstack and go to login
+                authViewModel.signOut()
                 navController.navigate("login") {
                     popUpTo(0) { inclusive = true }
                 }

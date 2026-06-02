@@ -23,6 +23,7 @@ import com.example.comparts.ui.pages.items.EditItemScreen
 import com.example.comparts.ui.pages.items.ItemDetailScreen
 import com.example.comparts.ui.pages.items.ItemScreen
 import com.example.comparts.ui.pages.profile.ProfileScreen
+import com.example.comparts.ui.pages.profile.EditProfileScreen
 import com.example.comparts.ui.pages.report.ReportScreen
 import com.example.comparts.ui.pages.category.CategoryScreen
 import com.example.comparts.ui.pages.category.AddCategoryScreen
@@ -67,6 +68,10 @@ class MainActivity : ComponentActivity() {
                     Screen.Supplier.route,
                     Screen.Report.route,
                     Screen.Category.route,
+                    "add_item",
+                    "add_transaction",
+                    "add_supplier",
+                    "transaction" // Adding "transaction" route explicitly if needed
                 )
 
                 Scaffold(
@@ -86,10 +91,11 @@ class MainActivity : ComponentActivity() {
                         composable(Screen.Signup.route) { SignupScreen(navController) }
 
                         // --- Main App Routes ---
-                        composable(Screen.Home.route) { HomeScreen(navController) }
+                        composable(Screen.Home.route) { HomeScreen(navController, itemViewModel, supplierViewModel, transactionViewModel) }
 
                         // --- Profile ---
-                        composable(Screen.Profile.route) { ProfileScreen(navController) }
+                        composable(Screen.Profile.route) { ProfileScreen(navController, authViewModel) }
+                        composable("edit_profile") { EditProfileScreen(navController, authViewModel) }
 
                         // --- Items / Inventory ---
                         composable(Screen.Items.route) { ItemScreen(navController, itemViewModel) }

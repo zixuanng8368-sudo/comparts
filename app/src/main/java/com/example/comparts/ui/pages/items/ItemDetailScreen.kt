@@ -85,15 +85,21 @@ fun ItemDetailScreen(
         } else {
             // Item Image
             if (!item.itemImageUrl.isNullOrEmpty()) {
-                AsyncImage(
-                    model = item.itemImageUrl,
-                    contentDescription = item.itemName,
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp)
-                        .clip(RoundedCornerShape(16.dp)),
-                    contentScale = ContentScale.Crop
-                )
+                        .height(300.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color(0xFFF0F0F0)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    AsyncImage(
+                        model = item.itemImageUrl,
+                        contentDescription = item.itemName,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                }
                 Spacer(modifier = Modifier.height(24.dp))
             }
 

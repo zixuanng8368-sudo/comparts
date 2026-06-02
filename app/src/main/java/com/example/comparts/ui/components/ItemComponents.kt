@@ -65,8 +65,8 @@ fun InventoryCard(
             // Item Image
             Box(
                 modifier = Modifier
-                    .size(60.dp)
-                    .clip(RoundedCornerShape(8.dp))
+                    .size(80.dp)
+                    .clip(RoundedCornerShape(12.dp))
                     .background(Color.White.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
             ) {
@@ -78,7 +78,7 @@ fun InventoryCard(
                         contentScale = ContentScale.Crop
                     )
                 } else {
-                    Text(category.take(1).uppercase(), color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(category.take(1).uppercase(), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 24.sp)
                 }
             }
 
@@ -86,21 +86,36 @@ fun InventoryCard(
 
             // Item Info
             Column(modifier = Modifier.weight(1f)) {
-                Text(name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Text("SKU: $sku", color = Color(0xFFB0C4DE), fontSize = 12.sp)
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
                     Text("Cat: $category", color = Color(0xFFB0C4DE), fontSize = 12.sp)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(price, color = Color(0xFFB0C4DE), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
-                Text("Qty: $quantity", color = Color(0xFFB0C4DE), fontSize = 12.sp)
             }
 
-            // Stock Badge
-            Box(
-                modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(badgeColor).padding(horizontal = 8.dp, vertical = 4.dp)
-            ) {
-                Text(stockStatus, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            // Stock Level and Quantity
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = quantity,
+                    color = Color.White,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(badgeColor)
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = stockStatus,
+                        color = Color.White,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }

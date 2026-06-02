@@ -42,6 +42,7 @@ fun ItemScreen(
 
     val primaryBlue = Color(0xFF4A61F7)
     val criticalRed = Color(0xFFFF4C4C)
+    val warningOrange = Color(0xFFFF9800)
     val healthyGreen = Color(0xFF00C853)
 
     Column(
@@ -118,7 +119,11 @@ fun ItemScreen(
                                 price = "RM ${String.format(Locale.US, "%.2f", item.itemPrice)}",
                                 quantity = item.itemStockQuantity.toString(),
                                 stockStatus = if (item.itemStockQuantity > item.itemMinStockLevel) "IN STOCK" else if (item.itemStockQuantity > 0) "LOW STOCK" else "OUT OF STOCK",
-                                badgeColor = if (item.itemStockQuantity > item.itemMinStockLevel) healthyGreen else criticalRed,
+                                badgeColor = when {
+                                    item.itemStockQuantity > item.itemMinStockLevel -> healthyGreen
+                                    item.itemStockQuantity > 0 -> warningOrange
+                                    else -> criticalRed
+                                },
                                 cardColor = primaryBlue,
                                 imageUrl = item.itemImageUrl,
                                 onClick = { navController.navigate("item_detail/${item.itemId}") }

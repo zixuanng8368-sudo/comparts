@@ -39,26 +39,28 @@ class ItemViewModel : ViewModel() {
         return repository.getItemById(itemId)
     }
 
-    fun addItem(item: Item, onComplete: () -> Unit) {
+    fun addItem(item: Item, onResult: (Boolean, String?) -> Unit) {
         viewModelScope.launch {
             try {
                 repository.addItem(item)
                 loadItems()
-                onComplete()
+                onResult(true, null)
             } catch (e: Exception) {
                 e.printStackTrace()
+                onResult(false, e.message)
             }
         }
     }
 
-    fun updateItem(item: Item, onComplete: () -> Unit) {
+    fun updateItem(item: Item, onResult: (Boolean, String?) -> Unit) {
         viewModelScope.launch {
             try {
                 repository.updateItem(item)
                 loadItems()
-                onComplete()
+                onResult(true, null)
             } catch (e: Exception) {
                 e.printStackTrace()
+                onResult(false, e.message)
             }
         }
     }

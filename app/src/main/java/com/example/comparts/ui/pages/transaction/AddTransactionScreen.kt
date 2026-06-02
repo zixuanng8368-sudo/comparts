@@ -42,8 +42,13 @@ fun AddTransactionScreen(
     var transactionType by remember { mutableStateOf("IN") } // "IN" or "OUT"
 
     val items by itemViewModel.items.collectAsState()
-    val currentUser = authViewModel.currentUser()
+    var userId by remember { mutableStateOf<String?>(null) }
     var partExpanded by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        val user = authViewModel.getFullUser()
+        userId = user?.id
+    }
 
     val fieldColor = Color(0xFF5A75FF)
     val textColor = Color.White
@@ -66,16 +71,17 @@ fun AddTransactionScreen(
         Text(text = "Part*", color = Color.Gray, fontSize = 14.sp, modifier = Modifier.padding(bottom = 4.dp))
         ExposedDropdownMenuBox(
             expanded = partExpanded,
-            onExpandedChange = { partExpanded = !partExpanded },
+            onExpandedChange = { partExpanded = it },
             modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
         ) {
-            val selectedItem = items.find { it.itemId == selectedItemId }
             OutlinedTextField(
-                value = selectedItem?.itemName ?: if (partSearchQuery.isNotEmpty()) partSearchQuery else "Search and Select Part",
+                value = partSearchQuery,
                 onValueChange = { 
                     partSearchQuery = it
-                    selectedItemId = null // Reset selection when searching
+                    selectedItemId = null 
+                    partExpanded = true 
                 },
+                placeholder = { Text("Search and Select Part", color = textColor.copy(alpha = 0.6f)) },
                 modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable).fillMaxWidth(),
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = partExpanded) },
                 colors = OutlinedTextFieldDefaults.colors(
@@ -168,8 +174,8 @@ fun AddTransactionScreen(
 
         Button(
             onClick = {
-                if (selectedItemId != null && (quantity.isNotBlank())) {
-                    val userId = currentUser?.id ?: "unknown"
+                if (selectedItemId != null && quantity.isNotBlank() && userId != null) {
+                    val finalUserId = userId!!
                     val newTransaction = Transaction(
                         itemId = selectedItemId!!,
                         transactionType = transactionType,
@@ -177,19 +183,24 @@ fun AddTransactionScreen(
                         transactionReferenceNumber = referenceNumber,
                         transactionNotes = notes,
                         transactionDate = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date()),
-                        createdBy = userId,
-                        updatedBy = userId
+                        createdBy = finalUserId,
+                        updatedBy = finalUserId
                     )
                     transactionViewModel.addTransaction(newTransaction) {
                         navController.popBackStack()
                     }
                 }
             },
+            enabled = userId != null,
             modifier = Modifier.fillMaxWidth().height(50.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF000080)),
             shape = RoundedCornerShape(24.dp)
         ) {
-            Text("Add Record", fontSize = 16.sp, color = Color.White)
+            if (userId == null) {
+                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+            } else {
+                Text("Add Record", fontSize = 16.sp, color = Color.White)
+            }
         }
     }
 }

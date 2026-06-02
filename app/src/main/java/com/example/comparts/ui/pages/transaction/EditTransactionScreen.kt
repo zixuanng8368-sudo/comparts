@@ -47,6 +47,9 @@ fun EditTransactionScreen(
     var notes by remember { mutableStateOf("") }
     var transactionType by remember { mutableStateOf("IN") }
     
+    var createdByName by remember { mutableStateOf("Loading...") }
+    var updatedByName by remember { mutableStateOf("Loading...") }
+
     var partExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(existingTransaction) {
@@ -57,6 +60,9 @@ fun EditTransactionScreen(
             referenceNumber = it.transactionReferenceNumber ?: ""
             notes = it.transactionNotes ?: ""
             transactionType = it.transactionType
+            
+            createdByName = viewModel.getUserNameById(it.createdBy)
+            updatedByName = viewModel.getUserNameById(it.updatedBy)
         }
     }
 
@@ -125,6 +131,14 @@ fun EditTransactionScreen(
         BlueTextField(value = quantity, onValueChange = { quantity = it }, label = "Quantity*", placeholder = "e.g. 4", bgColor = fieldColor, textColor = textColor)
         BlueTextField(value = referenceNumber, onValueChange = { referenceNumber = it }, label = "Reference Number", placeholder = "e.g. PO-0482", bgColor = fieldColor, textColor = textColor)
         BlueTextField(value = notes, onValueChange = { notes = it }, label = "Notes", placeholder = "Optional remarks", bgColor = fieldColor, textColor = textColor)
+
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // Display User Info
+        Column(modifier = Modifier.padding(vertical = 8.dp)) {
+            Text("Created By: $createdByName", color = Color.Gray, fontSize = 14.sp)
+            Text("Last Updated By: $updatedByName", color = Color.Gray, fontSize = 14.sp)
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 

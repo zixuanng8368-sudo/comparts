@@ -44,21 +44,25 @@ class ItemRepository {
     suspend fun uploadItemImage(byteArray: ByteArray, fileName: String, oldImageUrl: String? = null): String {
         val bucket = SupabaseClient.client.storage.from("item-images")
         
-        // Try to delete the old image if it exists and is different from the new one
+        // Improve deletion logic: only delete if it's a known Supabase URL and different file
         oldImageUrl?.let { url ->
-            try {
-                val oldFileName = url.substringAfterLast("/")
-                if (oldFileName != fileName) {
-                    bucket.delete(oldFileName)
+            if (url.contains("supabase.co") && url.contains("item-images/")) {
+                try {
+                    val oldFileName = url.split("item-images/").last().split("?").first()
+                    if (oldFileName != fileName) {
+                        bucket.delete(oldFileName)
+                    }
+                } catch (e: Exception) {
+                    println("Non-critical: Failed to delete old image: ${e.message}")
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
         }
 
         bucket.upload(fileName, byteArray) {
             upsert = true
         }
+        
+        // Ensure we get a valid public URL
         return bucket.publicUrl(fileName)
     }
 }

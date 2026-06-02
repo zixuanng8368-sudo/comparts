@@ -4,12 +4,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -32,7 +33,7 @@ fun ReportScreen() {
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
-                    imageVector = Icons.Default.BarChart,
+                    imageVector = Icons.Default.Analytics,
                     contentDescription = null,
                     modifier = Modifier.size(64.dp),
                     tint = Color(0xFF4A61F7)
@@ -43,7 +44,7 @@ fun ReportScreen() {
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Statistical Insights",
+            text = "Reports Dashboard",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Black
@@ -52,7 +53,7 @@ fun ReportScreen() {
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-            text = "We are currently building advanced analytics and visual charts to help you track your inventory performance.",
+            text = "Statistical charts, flow analysis, and exporting tools are currently under construction.",
             fontSize = 16.sp,
             color = Color.Gray,
             textAlign = TextAlign.Center,
@@ -67,7 +68,7 @@ fun ReportScreen() {
                 .height(8.dp),
             color = Color(0xFF4A61F7),
             trackColor = Color(0xFFF0F2FF),
-            strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
+            strokeCap = StrokeCap.Round
         )
 
         Spacer(modifier = Modifier.height(8.dp))

@@ -41,6 +41,7 @@ import com.example.comparts.viewmodel.CategoryViewModel
 import com.example.comparts.viewmodel.SupplierViewModel
 import com.example.comparts.util.SkuGenerator
 import io.github.jan.supabase.auth.auth
+import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.util.UUID
 
@@ -60,6 +61,10 @@ fun AddItemScreen(
     var currentStock by remember { mutableStateOf("") }
     var minThreshold by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+    
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    var isSaving by remember { mutableStateOf(false) }
     
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
     val context = LocalContext.current
@@ -90,175 +95,175 @@ fun AddItemScreen(
     val fieldColor = Color(0xFF5A75FF)
     val textColor = Color.White
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 24.dp, top = 8.dp)) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", modifier = Modifier.clickable { navController.popBackStack() })
-            Spacer(modifier = Modifier.width(16.dp))
-            Text("Add New Item", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-        }
-
-        // Image Picker UI
-        Box(
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color(0xFFF0F0F0)),
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(paddingValues)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
         ) {
-            if (bitmap != null) {
-                Image(
-                    bitmap = bitmap!!.asImageBitmap(),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Default.CameraAlt, contentDescription = null, modifier = Modifier.size(48.dp), tint = Color.Gray)
-                    Text("Add Item Image", color = Color.Gray)
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 24.dp, top = 8.dp)) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", modifier = Modifier.clickable { navController.popBackStack() })
+                Spacer(modifier = Modifier.width(16.dp))
+                Text("Add New Item", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            }
+
+            // Image Picker UI
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFFF0F0F0)),
+                contentAlignment = Alignment.Center
+            ) {
+                if (bitmap != null) {
+                    Image(
+                        bitmap = bitmap!!.asImageBitmap(),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(Icons.Default.CameraAlt, contentDescription = null, modifier = Modifier.size(48.dp), tint = Color.Gray)
+                        Text("Add Item Image", color = Color.Gray)
+                    }
                 }
             }
-        }
-        
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            Button(onClick = { cameraLauncher.launch() }) {
-                Icon(Icons.Default.CameraAlt, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text("Camera")
-            }
-            Button(onClick = { galleryLauncher.launch("image/*") }) {
-                Icon(Icons.Default.PhotoLibrary, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text("Gallery")
-            }
-        }
-
-        BlueTextField(value = itemName, onValueChange = { itemName = it }, label = "Item Name*", placeholder = "Enter item name", bgColor = fieldColor, textColor = textColor)
-        BlueTextField(value = itemSku, onValueChange = { itemSku = it }, label = "SKU*", placeholder = "Generated SKU", bgColor = fieldColor, textColor = textColor)
-
-        // Category Dropdown
-        Text(text = "Category*", color = Color.Gray, fontSize = 14.sp, modifier = Modifier.padding(bottom = 4.dp))
-        ExposedDropdownMenuBox(
-            expanded = categoryExpanded,
-            onExpandedChange = { categoryExpanded = !categoryExpanded },
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
-        ) {
-            val selectedCategory = categories.find { it.categoryId == selectedCategoryId }
-            OutlinedTextField(
-                value = selectedCategory?.categoryName ?: "Select Category",
-                onValueChange = {},
-                readOnly = true,
-                modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = fieldColor,
-                    unfocusedContainerColor = fieldColor,
-                    focusedTextColor = textColor,
-                    unfocusedTextColor = textColor,
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent
-                ),
-                shape = RoundedCornerShape(12.dp)
-            )
-            ExposedDropdownMenu(
-                expanded = categoryExpanded,
-                onDismissRequest = { categoryExpanded = false }
+            
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                categories.forEach { category ->
+                Button(onClick = { cameraLauncher.launch() }) {
+                    Icon(Icons.Default.CameraAlt, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Camera")
+                }
+                Button(onClick = { galleryLauncher.launch("image/*") }) {
+                    Icon(Icons.Default.PhotoLibrary, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Gallery")
+                }
+            }
+
+            BlueTextField(value = itemName, onValueChange = { itemName = it }, label = "Item Name*", placeholder = "Enter item name", bgColor = fieldColor, textColor = textColor)
+            BlueTextField(value = itemSku, onValueChange = { itemSku = it }, label = "SKU*", placeholder = "Generated SKU", bgColor = fieldColor, textColor = textColor)
+
+            // Category Dropdown
+            Text(text = "Category*", color = Color.Gray, fontSize = 14.sp, modifier = Modifier.padding(bottom = 4.dp))
+            ExposedDropdownMenuBox(
+                expanded = categoryExpanded,
+                onExpandedChange = { categoryExpanded = !categoryExpanded },
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+            ) {
+                val selectedCategory = categories.find { it.categoryId == selectedCategoryId }
+                OutlinedTextField(
+                    value = selectedCategory?.categoryName ?: "Select Category",
+                    onValueChange = {},
+                    readOnly = true,
+                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = fieldColor,
+                        unfocusedContainerColor = fieldColor,
+                        focusedTextColor = textColor,
+                        unfocusedTextColor = textColor,
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                ExposedDropdownMenu(
+                    expanded = categoryExpanded,
+                    onDismissRequest = { categoryExpanded = false }
+                ) {
+                    categories.forEach { category ->
+                        DropdownMenuItem(
+                            text = { Text(category.categoryName) },
+                            onClick = {
+                                selectedCategoryId = category.categoryId
+                                categoryExpanded = false
+                            }
+                        )
+                    }
                     DropdownMenuItem(
-                        text = { Text(category.categoryName) },
+                        text = { Text("+ Add New Category", color = primaryBlue) },
                         onClick = {
-                            selectedCategoryId = category.categoryId
+                            navController.navigate("add_category")
                             categoryExpanded = false
                         }
                     )
                 }
-                DropdownMenuItem(
-                    text = { Text("+ Add New Category", color = primaryBlue) },
-                    onClick = {
-                        navController.navigate("add_category")
-                        categoryExpanded = false
-                    }
-                )
             }
-        }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Box(modifier = Modifier.weight(1f)) {
-                BlueTextField(value = itemPrice, onValueChange = { itemPrice = it }, label = "Unit Price (RM)*", placeholder = "0.00", bgColor = fieldColor, textColor = textColor)
-            }
-            Box(modifier = Modifier.weight(1f)) {
-                BlueTextField(value = currentStock, onValueChange = { currentStock = it }, label = "Current Stock*", placeholder = "0", bgColor = fieldColor, textColor = textColor)
-            }
-        }
-
-        BlueTextField(value = minThreshold, onValueChange = { minThreshold = it }, label = "Min. Threshold", placeholder = "0", bgColor = fieldColor, textColor = textColor)
-
-        // Supplier Dropdown
-        Text(text = "Supplier", color = Color.Gray, fontSize = 14.sp, modifier = Modifier.padding(bottom = 4.dp))
-        ExposedDropdownMenuBox(
-            expanded = supplierExpanded,
-            onExpandedChange = { supplierExpanded = !supplierExpanded },
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
-        ) {
-            val selectedSupplier = suppliers.find { it.supplierId == selectedSupplierId }
-            OutlinedTextField(
-                value = selectedSupplier?.supplierName ?: "Select Supplier",
-                onValueChange = {},
-                readOnly = true,
-                modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = supplierExpanded) },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = fieldColor,
-                    unfocusedContainerColor = fieldColor,
-                    focusedTextColor = textColor,
-                    unfocusedTextColor = textColor,
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent
-                ),
-                shape = RoundedCornerShape(12.dp)
-            )
-            ExposedDropdownMenu(
-                expanded = supplierExpanded,
-                onDismissRequest = { supplierExpanded = false }
-            ) {
-                suppliers.forEach { supplier ->
-                    DropdownMenuItem(
-                        text = { Text(supplier.supplierName) },
-                        onClick = {
-                            selectedSupplierId = supplier.supplierId
-                            supplierExpanded = false
-                        }
-                    )
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Box(modifier = Modifier.weight(1f)) {
+                    BlueTextField(value = itemPrice, onValueChange = { itemPrice = it }, label = "Unit Price (RM)*", placeholder = "0.00", bgColor = fieldColor, textColor = textColor)
+                }
+                Box(modifier = Modifier.weight(1f)) {
+                    BlueTextField(value = currentStock, onValueChange = { currentStock = it }, label = "Current Stock*", placeholder = "0", bgColor = fieldColor, textColor = textColor)
                 }
             }
-        }
 
-        BlueTextField(value = description, onValueChange = { description = it }, label = "Description", placeholder = "Enter description", bgColor = fieldColor, textColor = textColor, singleLine = false, modifier = Modifier.height(100.dp))
+            BlueTextField(value = minThreshold, onValueChange = { minThreshold = it }, label = "Min. Threshold", placeholder = "0", bgColor = fieldColor, textColor = textColor)
 
-        Spacer(modifier = Modifier.height(24.dp))
+            // Supplier Dropdown
+            Text(text = "Supplier", color = Color.Gray, fontSize = 14.sp, modifier = Modifier.padding(bottom = 4.dp))
+            ExposedDropdownMenuBox(
+                expanded = supplierExpanded,
+                onExpandedChange = { supplierExpanded = !supplierExpanded },
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+            ) {
+                val selectedSupplier = suppliers.find { it.supplierId == selectedSupplierId }
+                OutlinedTextField(
+                    value = selectedSupplier?.supplierName ?: "Select Supplier",
+                    onValueChange = {},
+                    readOnly = true,
+                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = supplierExpanded) },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = fieldColor,
+                        unfocusedContainerColor = fieldColor,
+                        focusedTextColor = textColor,
+                        unfocusedTextColor = textColor,
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                ExposedDropdownMenu(
+                    expanded = supplierExpanded,
+                    onDismissRequest = { supplierExpanded = false }
+                ) {
+                    suppliers.forEach { supplier ->
+                        DropdownMenuItem(
+                            text = { Text(supplier.supplierName) },
+                            onClick = {
+                                selectedSupplierId = supplier.supplierId
+                                supplierExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
 
-        Button(
-            onClick = {
-                if (itemName.isNotBlank() && itemSku.isNotBlank()) {
-                    val itemId = UUID.randomUUID().toString()
-                    val userId = SupabaseClient.client.auth.currentUserOrNull()?.id
-                    
-                    if (bitmap != null) {
-                        val stream = ByteArrayOutputStream()
-                        bitmap!!.compress(Bitmap.CompressFormat.JPEG, 80, stream)
+            BlueTextField(value = description, onValueChange = { description = it }, label = "Description", placeholder = "Enter description", bgColor = fieldColor, textColor = textColor, singleLine = false, modifier = Modifier.height(100.dp))
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = {
+                    if (itemName.isNotBlank() && itemSku.isNotBlank()) {
+                        isSaving = true
+                        val itemId = UUID.randomUUID().toString()
                         
-                        itemViewModel.uploadImage(itemId, stream.toByteArray()) { imageUrl ->
+                        val saveItem = { imageUrl: String? ->
                             val newItem = Item(
                                 itemId = itemId,
                                 itemName = itemName,
@@ -271,35 +276,46 @@ fun AddItemScreen(
                                 itemReference = description,
                                 itemImageUrl = imageUrl
                             )
-                            itemViewModel.addItem(newItem) {
-                                navController.popBackStack()
+                            itemViewModel.addItem(newItem) { success, error ->
+                                isSaving = false
+                                if (success) {
+                                    navController.popBackStack()
+                                } else {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar("Error: ${error ?: "Unknown error"}")
+                                    }
+                                }
                             }
                         }
+
+                        if (bitmap != null) {
+                            val stream = ByteArrayOutputStream()
+                            bitmap!!.compress(Bitmap.CompressFormat.JPEG, 80, stream)
+                            itemViewModel.uploadImage(itemId, stream.toByteArray()) { imageUrl ->
+                                saveItem(imageUrl)
+                            }
+                        } else {
+                            saveItem(null)
+                        }
                     } else {
-                        val newItem = Item(
-                            itemId = itemId,
-                            itemName = itemName,
-                            itemSku = itemSku,
-                            itemPrice = itemPrice.toDoubleOrNull() ?: 0.0,
-                            itemStockQuantity = currentStock.toIntOrNull() ?: 0,
-                            itemMinStockLevel = minThreshold.toIntOrNull() ?: 0,
-                            categoryId = selectedCategoryId,
-                            supplierId = selectedSupplierId,
-                            itemReference = description
-                        )
-                        itemViewModel.addItem(newItem) {
-                            navController.popBackStack()
+                        scope.launch {
+                            snackbarHostState.showSnackbar("Please fill in required fields (*)")
                         }
                     }
+                },
+                enabled = !isSaving,
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF000080)),
+                shape = RoundedCornerShape(24.dp)
+            ) {
+                if (isSaving) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                } else {
+                    Text("Add Item", fontSize = 16.sp, color = Color.White)
                 }
-            },
-            modifier = Modifier.fillMaxWidth().height(50.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF000080)),
-            shape = RoundedCornerShape(24.dp)
-        ) {
-            Text("Add Item", fontSize = 16.sp, color = Color.White)
-        }
+            }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+        }
     }
 }
