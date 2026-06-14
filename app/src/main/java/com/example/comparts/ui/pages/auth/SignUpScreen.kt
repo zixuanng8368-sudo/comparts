@@ -120,7 +120,14 @@ fun SignupScreen(navController: NavController, viewModel: AuthViewModel = viewMo
 
         Button(
             onClick = {
-                if (email.isNotBlank() && password.isNotBlank() && username.isNotBlank()) {
+                if (username.isBlank()) {
+                    // We'll let the ViewModel handle the message or add a local check
+                    viewModel.signUp(email, password, username)
+                } else if (email.isBlank()) {
+                    viewModel.signUp(email, password, username)
+                } else if (password.length < 6) {
+                    viewModel.signUp(email, password, username)
+                } else {
                     viewModel.signUp(email, password, username)
                 }
             },

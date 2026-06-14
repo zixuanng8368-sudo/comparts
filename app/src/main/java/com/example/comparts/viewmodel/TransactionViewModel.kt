@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.comparts.data.model.Transaction
 import com.example.comparts.data.repository.TransactionRepository
+import com.example.comparts.util.mapThrowableToMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -40,26 +41,28 @@ class TransactionViewModel : ViewModel() {
         }
     }
 
-    fun addTransaction(transaction: Transaction, onComplete: () -> Unit) {
+    fun addTransaction(transaction: Transaction, onResult: (Boolean, String?) -> Unit) {
         viewModelScope.launch {
             try {
                 repository.addTransaction(transaction)
                 loadTransactions()
-                onComplete()
+                onResult(true, null)
             } catch (e: Exception) {
                 e.printStackTrace()
+                onResult(false, mapThrowableToMessage(e))
             }
         }
     }
 
-    fun updateTransaction(transaction: Transaction, onComplete: () -> Unit) {
+    fun updateTransaction(transaction: Transaction, onResult: (Boolean, String?) -> Unit) {
         viewModelScope.launch {
             try {
                 repository.updateTransaction(transaction)
                 loadTransactions()
-                onComplete()
+                onResult(true, null)
             } catch (e: Exception) {
                 e.printStackTrace()
+                onResult(false, mapThrowableToMessage(e))
             }
         }
     }
@@ -68,7 +71,6 @@ class TransactionViewModel : ViewModel() {
         if (userId.isNullOrBlank()) return "System"
         
         return try {
-            // Call RPC to get the display name (full_name or similar) from profiles/auth
             val response = SupabaseClient.client.postgrest.rpc("get_user_name", mapOf("user_uuid" to userId))
             response.decodeAs<String>()
         } catch (e: Exception) { 

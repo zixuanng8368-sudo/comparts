@@ -23,6 +23,7 @@ import com.example.comparts.ui.components.BlueTextField
 import com.example.comparts.viewmodel.ItemViewModel
 import com.example.comparts.viewmodel.TransactionViewModel
 import com.example.comparts.viewmodel.AuthViewModel
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -51,8 +52,12 @@ fun EditTransactionScreen(
     var updatedByName by remember { mutableStateOf("Loading...") }
 
     var partExpanded by remember { mutableStateOf(false) }
+    
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    var isSaving by remember { mutableStateOf(false) }
 
-    LaunchedEffect(existingTransaction) {
+    LaunchedEffect(existingTransaction, items) {
         existingTransaction?.let {
             selectedItemId = it.itemId
             partSearchQuery = items.find { item -> item.itemId == it.itemId }?.itemName ?: ""
@@ -69,139 +74,161 @@ fun EditTransactionScreen(
     val fieldColor = Color(0xFF5A75FF)
     val textColor = Color.White
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 24.dp, top = 8.dp)) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", modifier = Modifier.clickable { navController.popBackStack() })
-            Spacer(modifier = Modifier.width(16.dp))
-            Text("Edit Transaction", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-        }
-
-        // Searchable Part Selection
-        Text(text = "Part*", color = Color.Gray, fontSize = 14.sp, modifier = Modifier.padding(bottom = 4.dp))
-        ExposedDropdownMenuBox(
-            expanded = partExpanded,
-            onExpandedChange = { partExpanded = !partExpanded },
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(paddingValues)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
         ) {
-            val selectedItem = items.find { it.itemId == selectedItemId }
-            OutlinedTextField(
-                value = selectedItem?.itemName ?: if (partSearchQuery.isNotEmpty()) partSearchQuery else "Search and Select Part",
-                onValueChange = { 
-                    partSearchQuery = it
-                    selectedItemId = null
-                },
-                modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable).fillMaxWidth(),
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = partExpanded) },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = fieldColor,
-                    unfocusedContainerColor = fieldColor,
-                    focusedTextColor = textColor,
-                    unfocusedTextColor = textColor,
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent
-                ),
-                shape = RoundedCornerShape(12.dp)
-            )
-            
-            val filteredItems = items.filter { it.itemName.contains(partSearchQuery, ignoreCase = true) }
-            
-            ExposedDropdownMenu(
-                expanded = partExpanded && filteredItems.isNotEmpty(),
-                onDismissRequest = { partExpanded = false }
-            ) {
-                filteredItems.forEach { item ->
-                    DropdownMenuItem(
-                        text = { Text(item.itemName) },
-                        onClick = {
-                            selectedItemId = item.itemId
-                            partSearchQuery = item.itemName
-                            partExpanded = false
-                        }
-                    )
-                }
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 24.dp, top = 8.dp)) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", modifier = Modifier.clickable { navController.popBackStack() })
+                Spacer(modifier = Modifier.width(16.dp))
+                Text("Edit Transaction", fontSize = 22.sp, fontWeight = FontWeight.Bold)
             }
-        }
 
-        BlueTextField(value = quantity, onValueChange = { quantity = it }, label = "Quantity*", placeholder = "e.g. 4", bgColor = fieldColor, textColor = textColor)
-        BlueTextField(value = referenceNumber, onValueChange = { referenceNumber = it }, label = "Reference Number", placeholder = "e.g. PO-0482", bgColor = fieldColor, textColor = textColor)
-        BlueTextField(value = notes, onValueChange = { notes = it }, label = "Notes", placeholder = "Optional remarks", bgColor = fieldColor, textColor = textColor)
-
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // Display User Info
-        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-            Text("Created By: $createdByName", color = Color.Gray, fontSize = 14.sp)
-            Text("Last Updated By: $updatedByName", color = Color.Gray, fontSize = 14.sp)
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Toggle Switch for IN/OUT
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Surface(
-                color = fieldColor,
-                shape = RoundedCornerShape(24.dp),
-                modifier = Modifier.height(50.dp).width(200.dp)
+            // Searchable Part Selection
+            Text(text = "Part*", color = Color.Gray, fontSize = 14.sp, modifier = Modifier.padding(bottom = 4.dp))
+            ExposedDropdownMenuBox(
+                expanded = partExpanded,
+                onExpandedChange = { partExpanded = it },
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
             ) {
-                Row(modifier = Modifier.fillMaxSize()) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .background(if (transactionType == "IN") Color.White.copy(alpha = 0.3f) else Color.Transparent)
-                            .clickable { transactionType = "IN" },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Stock In", color = if (transactionType == "IN") Color.White else Color.White.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
-                    }
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .background(if (transactionType == "OUT") Color.White.copy(alpha = 0.3f) else Color.Transparent)
-                            .clickable { transactionType = "OUT" },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Stock Out", color = if (transactionType == "OUT") Color.White else Color.White.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = {
-                existingTransaction?.let { trans ->
-                    if (selectedItemId != null && quantity.isNotBlank()) {
-                        val updatedTransaction = trans.copy(
-                            itemId = selectedItemId!!,
-                            transactionType = transactionType,
-                            transactionQuantity = quantity.toIntOrNull() ?: 0,
-                            transactionReferenceNumber = referenceNumber,
-                            transactionNotes = notes,
-                            updatedBy = currentUser?.id ?: "unknown"
+                OutlinedTextField(
+                    value = partSearchQuery,
+                    onValueChange = { 
+                        partSearchQuery = it
+                        selectedItemId = null
+                        partExpanded = true
+                    },
+                    placeholder = { Text("Search and Select Part", color = textColor.copy(alpha = 0.6f)) },
+                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable).fillMaxWidth(),
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = partExpanded) },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = fieldColor,
+                        unfocusedContainerColor = fieldColor,
+                        focusedTextColor = textColor,
+                        unfocusedTextColor = textColor,
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                
+                val filteredItems = items.filter { it.itemName.contains(partSearchQuery, ignoreCase = true) }
+                
+                ExposedDropdownMenu(
+                    expanded = partExpanded && filteredItems.isNotEmpty(),
+                    onDismissRequest = { partExpanded = false }
+                ) {
+                    filteredItems.forEach { item ->
+                        DropdownMenuItem(
+                            text = { Text(item.itemName) },
+                            onClick = {
+                                selectedItemId = item.itemId
+                                partSearchQuery = item.itemName
+                                partExpanded = false
+                            }
                         )
-                        viewModel.updateTransaction(updatedTransaction) {
-                            navController.popBackStack()
+                    }
+                }
+            }
+
+            BlueTextField(value = quantity, onValueChange = { quantity = it }, label = "Quantity*", placeholder = "e.g. 4", bgColor = fieldColor, textColor = textColor)
+            BlueTextField(value = referenceNumber, onValueChange = { referenceNumber = it }, label = "Reference Number", placeholder = "e.g. PO-0482", bgColor = fieldColor, textColor = textColor)
+            BlueTextField(value = notes, onValueChange = { notes = it }, label = "Notes", placeholder = "Optional remarks", bgColor = fieldColor, textColor = textColor)
+
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Display User Info
+            Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                Text("Created By: $createdByName", color = Color.Gray, fontSize = 14.sp)
+                Text("Last Updated By: $updatedByName", color = Color.Gray, fontSize = 14.sp)
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Toggle Switch for IN/OUT
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Surface(
+                    color = fieldColor,
+                    shape = RoundedCornerShape(24.dp),
+                    modifier = Modifier.height(50.dp).width(200.dp)
+                ) {
+                    Row(modifier = Modifier.fillMaxSize()) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .background(if (transactionType == "IN") Color.White.copy(alpha = 0.3f) else Color.Transparent)
+                                .clickable { transactionType = "IN" },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("Stock In", color = if (transactionType == "IN") Color.White else Color.White.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
+                        }
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .background(if (transactionType == "OUT") Color.White.copy(alpha = 0.3f) else Color.Transparent)
+                                .clickable { transactionType = "OUT" },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("Stock Out", color = if (transactionType == "OUT") Color.White else Color.White.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
                         }
                     }
                 }
-            },
-            modifier = Modifier.fillMaxWidth().height(50.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF000080)),
-            shape = RoundedCornerShape(24.dp)
-        ) {
-            Text("Update Record", fontSize = 16.sp, color = Color.White)
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = {
+                    val qtyInt = quantity.toIntOrNull()
+                    existingTransaction?.let { trans ->
+                        if (selectedItemId == null) {
+                            scope.launch { snackbarHostState.showSnackbar("Please select a part") }
+                        } else if (qtyInt == null || qtyInt <= 0) {
+                            scope.launch { snackbarHostState.showSnackbar("Please enter a valid quantity (> 0)") }
+                        } else {
+                            isSaving = true
+                            val updatedTransaction = trans.copy(
+                                itemId = selectedItemId!!,
+                                transactionType = transactionType,
+                                transactionQuantity = qtyInt,
+                                transactionReferenceNumber = referenceNumber,
+                                transactionNotes = notes,
+                                updatedBy = currentUser?.id ?: "unknown"
+                            )
+                            viewModel.updateTransaction(updatedTransaction) { success, error ->
+                                isSaving = false
+                                if (success) {
+                                    navController.popBackStack()
+                                } else {
+                                    scope.launch { snackbarHostState.showSnackbar(error ?: "Failed to update record") }
+                                }
+                            }
+                        }
+                    }
+                },
+                enabled = !isSaving,
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF000080)),
+                shape = RoundedCornerShape(24.dp)
+            ) {
+                if (isSaving) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                } else {
+                    Text("Update Record", fontSize = 16.sp, color = Color.White)
+                }
+            }
         }
     }
 }

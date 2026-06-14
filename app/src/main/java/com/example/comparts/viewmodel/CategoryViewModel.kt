@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.comparts.data.model.Category
 import com.example.comparts.data.repository.CategoryRepository
+import com.example.comparts.util.mapThrowableToMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -39,26 +40,28 @@ class CategoryViewModel : ViewModel() {
         return repository.getCategoryById(categoryId)
     }
 
-    fun addCategory(category: Category, onComplete: () -> Unit) {
+    fun addCategory(category: Category, onResult: (Boolean, String?) -> Unit) {
         viewModelScope.launch {
             try {
                 repository.addCategory(category)
                 loadCategories()
-                onComplete()
+                onResult(true, null)
             } catch (e: Exception) {
                 e.printStackTrace()
+                onResult(false, mapThrowableToMessage(e))
             }
         }
     }
 
-    fun updateCategory(category: Category, onComplete: () -> Unit) {
+    fun updateCategory(category: Category, onResult: (Boolean, String?) -> Unit) {
         viewModelScope.launch {
             try {
                 repository.updateCategory(category)
                 loadCategories()
-                onComplete()
+                onResult(true, null)
             } catch (e: Exception) {
                 e.printStackTrace()
+                onResult(false, mapThrowableToMessage(e))
             }
         }
     }

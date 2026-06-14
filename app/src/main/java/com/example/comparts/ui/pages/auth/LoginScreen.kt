@@ -1,5 +1,6 @@
 package com.example.comparts.ui.pages.auth
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -8,11 +9,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.comparts.R
 
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.comparts.viewmodel.AuthState
@@ -22,7 +25,6 @@ import com.example.comparts.viewmodel.AuthViewModel
 fun LoginScreen(navController: NavController, viewModel: AuthViewModel = viewModel()) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var rememberMe by remember { mutableStateOf(false) }
     val authState by viewModel.authState.collectAsState()
 
     LaunchedEffect(authState) {
@@ -45,18 +47,13 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel = viewMod
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Logo Placeholder
-        Text(
-            text = "C⁺",
-            fontSize = 64.sp,
-            color = primaryPurple,
-            fontWeight = FontWeight.ExtraBold
-        )
-        Text(
-            text = "ComParts",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 48.dp)
+        // Application Logo
+        Image(
+            painter = painterResource(id = R.drawable.comparts_logo),
+            contentDescription = "ComParts Logo",
+            modifier = Modifier
+                .size(120.dp)
+                .padding(bottom = 32.dp)
         )
 
         Column(
@@ -103,7 +100,7 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel = viewMod
                 onValueChange = { password = it },
                 placeholder = { Text("********", color = Color.Gray) },
                 visualTransformation = PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = lightGrey,
@@ -113,33 +110,16 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel = viewMod
                 )
             )
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp, bottom = 24.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(
-                        checked = rememberMe,
-                        onCheckedChange = { rememberMe = it },
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Remember Me?", fontSize = 12.sp)
-                }
-                Text(
-                    text = "Forgot Password?",
-                    fontSize = 12.sp,
-                    color = primaryPurple,
-                    modifier = Modifier.clickable { /* Handle forgot password */ }
-                )
-            }
-
             Button(
                 onClick = {
-                    viewModel.signIn(email, password)
+                    if (email.isBlank() || password.isBlank()) {
+                        // We can't easily show a snackbar here without a scaffold state, 
+                        // but the ViewModel will handle the error if we send empty strings.
+                        // However, let's trigger the VM and let Supabase return an error or add local validation state.
+                        viewModel.signIn(email, password)
+                    } else {
+                        viewModel.signIn(email, password)
+                    }
                 },
                 enabled = authState !is AuthState.Loading,
                 modifier = Modifier

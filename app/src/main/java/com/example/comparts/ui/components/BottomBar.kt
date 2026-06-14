@@ -76,5 +76,8 @@ private fun navigateToTab(navController: NavController, route: String) {
             // Restore state when reselecting a previously selected item
             restoreState = true
         }
+    } else if (route == Screen.Home.route) {
+        // If we're already on home and click it again, clear any internal sub-page stacks
+        navController.popBackStack(route, inclusive = false)
     }
 }

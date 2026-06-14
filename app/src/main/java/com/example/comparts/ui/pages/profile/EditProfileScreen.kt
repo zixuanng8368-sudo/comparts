@@ -19,12 +19,16 @@ import androidx.navigation.NavController
 import com.example.comparts.ui.components.BlueTextField
 import com.example.comparts.viewmodel.AuthState
 import com.example.comparts.viewmodel.AuthViewModel
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.jsonPrimitive
 
 @Composable
 fun EditProfileScreen(navController: NavController, authViewModel: AuthViewModel = viewModel()) {
     var username by remember { mutableStateOf("") }
     val authState by authViewModel.authState.collectAsState()
+    
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         val user = authViewModel.getFullUser()
@@ -39,56 +43,67 @@ fun EditProfileScreen(navController: NavController, authViewModel: AuthViewModel
 
     val primaryPurple = Color(0xFF6B58F5)
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(16.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 24.dp, top = 8.dp)) {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                modifier = Modifier.clickable { navController.popBackStack() }
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Text("Edit Profile", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-        }
-
-        BlueTextField(
-            value = username,
-            onValueChange = { username = it },
-            label = "Username",
-            placeholder = "Enter your username",
-            bgColor = Color(0xFFF0F0F0),
-            textColor = Color.Black
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = { authViewModel.updateUsername(username) },
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = primaryPurple),
-            shape = RoundedCornerShape(12.dp),
-            enabled = authState !is AuthState.Loading
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(paddingValues)
+                .padding(16.dp)
         ) {
-            if (authState is AuthState.Loading) {
-                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-            } else {
-                Text("Save Changes", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 24.dp, top = 8.dp)) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    modifier = Modifier.clickable { navController.popBackStack() }
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text("Edit Profile", fontSize = 22.sp, fontWeight = FontWeight.Bold)
             }
-        }
 
-        if (authState is AuthState.Error) {
-            Text(
-                text = (authState as AuthState.Error).message,
-                color = Color.Red,
-                fontSize = 12.sp,
-                modifier = Modifier.padding(top = 8.dp)
+            BlueTextField(
+                value = username,
+                onValueChange = { username = it },
+                label = "Username",
+                placeholder = "Enter your username",
+                bgColor = Color(0xFFF0F0F0),
+                textColor = Color.Black
             )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = { 
+                    if (username.isBlank()) {
+                        scope.launch { snackbarHostState.showSnackbar("Username cannot be empty") }
+                    } else {
+                        authViewModel.updateUsername(username) 
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = primaryPurple),
+                shape = RoundedCornerShape(12.dp),
+                enabled = authState !is AuthState.Loading
+            ) {
+                if (authState is AuthState.Loading) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                } else {
+                    Text("Save Changes", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+
+            if (authState is AuthState.Error) {
+                Text(
+                    text = (authState as AuthState.Error).message,
+                    color = Color.Red,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
         }
     }
 }

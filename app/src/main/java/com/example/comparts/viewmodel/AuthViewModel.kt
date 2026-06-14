@@ -3,6 +3,7 @@ package com.example.comparts.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.comparts.data.repository.AuthRepository
+import com.example.comparts.util.mapThrowableToMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -13,6 +14,13 @@ class AuthViewModel : ViewModel() {
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     val authState: StateFlow<AuthState> = _authState
 
+    private val _notificationsEnabled = MutableStateFlow(true)
+    val notificationsEnabled: StateFlow<Boolean> = _notificationsEnabled
+
+    fun setNotificationsEnabled(enabled: Boolean) {
+        _notificationsEnabled.value = enabled
+    }
+
     fun signUp(email: String, password: String, username: String) {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
@@ -20,7 +28,7 @@ class AuthViewModel : ViewModel() {
                 repository.signUp(email, password, username)
                 _authState.value = AuthState.Success
             } catch (e: Exception) {
-                _authState.value = AuthState.Error(e.message ?: "Registration failed")
+                _authState.value = AuthState.Error(mapThrowableToMessage(e))
             }
         }
     }
@@ -32,7 +40,7 @@ class AuthViewModel : ViewModel() {
                 repository.signIn(email, password)
                 _authState.value = AuthState.Success
             } catch (e: Exception) {
-                _authState.value = AuthState.Error(e.message ?: "Login failed")
+                _authState.value = AuthState.Error(mapThrowableToMessage(e))
             }
         }
     }
@@ -43,7 +51,7 @@ class AuthViewModel : ViewModel() {
                 repository.signOut()
                 _authState.value = AuthState.Idle
             } catch (e: Exception) {
-                _authState.value = AuthState.Error(e.message ?: "Logout failed")
+                _authState.value = AuthState.Error(mapThrowableToMessage(e))
             }
         }
     }
@@ -57,7 +65,7 @@ class AuthViewModel : ViewModel() {
                 repository.updateUsername(username)
                 _authState.value = AuthState.Success
             } catch (e: Exception) {
-                _authState.value = AuthState.Error(e.message ?: "Update failed")
+                _authState.value = AuthState.Error(mapThrowableToMessage(e))
             }
         }
     }

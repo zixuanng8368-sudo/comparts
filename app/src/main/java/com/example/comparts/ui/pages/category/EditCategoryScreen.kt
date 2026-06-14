@@ -21,6 +21,7 @@ import androidx.navigation.NavController
 import com.example.comparts.data.model.Category
 import com.example.comparts.ui.components.BlueTextField
 import com.example.comparts.viewmodel.CategoryViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun EditCategoryScreen(navController: NavController, categoryId: String?, viewModel: CategoryViewModel = viewModel()) {
@@ -29,6 +30,10 @@ fun EditCategoryScreen(navController: NavController, categoryId: String?, viewMo
 
     var existingCategory by remember { mutableStateOf<Category?>(null) }
     var isLoading by remember { mutableStateOf(true) }
+    
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    var isSaving by remember { mutableStateOf(false) }
 
     LaunchedEffect(categoryId) {
         if (categoryId != null) {
@@ -45,57 +50,77 @@ fun EditCategoryScreen(navController: NavController, categoryId: String?, viewMo
     val fieldColor = Color(0xFF5A75FF)
     val textColor = Color.White
 
-    if (isLoading) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
-        }
-    } else {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.White)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState())
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 24.dp, top = 8.dp)) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", modifier = Modifier.clickable { navController.popBackStack() })
-                Spacer(modifier = Modifier.width(16.dp))
-                Text("Edit Category", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        if (isLoading) {
+            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
             }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White)
+                    .padding(paddingValues)
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 24.dp, top = 8.dp)) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", modifier = Modifier.clickable { navController.popBackStack() })
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text("Edit Category", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                }
 
-            BlueTextField(value = categoryName, onValueChange = { categoryName = it }, label = "Category Name*", placeholder = "", bgColor = fieldColor, textColor = textColor)
-            BlueTextField(value = categoryDescription, onValueChange = { categoryDescription = it }, label = "Description", placeholder = "", bgColor = fieldColor, textColor = textColor, singleLine = false, modifier = Modifier.height(100.dp))
+                BlueTextField(value = categoryName, onValueChange = { categoryName = it }, label = "Category Name*", placeholder = "", bgColor = fieldColor, textColor = textColor)
+                BlueTextField(value = categoryDescription, onValueChange = { categoryDescription = it }, label = "Description", placeholder = "", bgColor = fieldColor, textColor = textColor, singleLine = false, modifier = Modifier.height(100.dp))
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-            Button(
-                onClick = {
-                    existingCategory?.let {
-                        val updatedCategory = it.copy(
-                            categoryName = categoryName,
-                            categoryDescription = if (categoryDescription.isBlank()) null else categoryDescription
-                        )
-                        viewModel.updateCategory(updatedCategory) {
-                            navController.popBackStack()
+                Button(
+                    onClick = {
+                        if (categoryName.isBlank()) {
+                            scope.launch { snackbarHostState.showSnackbar("Category Name is required") }
+                        } else {
+                            existingCategory?.let {
+                                isSaving = true
+                                val updatedCategory = it.copy(
+                                    categoryName = categoryName,
+                                    categoryDescription = if (categoryDescription.isBlank()) null else categoryDescription
+                                )
+                                viewModel.updateCategory(updatedCategory) { success, error ->
+                                    isSaving = false
+                                    if (success) {
+                                        navController.popBackStack()
+                                    } else {
+                                        scope.launch { snackbarHostState.showSnackbar(error ?: "Failed to update category") }
+                                    }
+                                }
+                            }
                         }
+                    },
+                    enabled = !isSaving,
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF000080)),
+                    shape = RoundedCornerShape(24.dp)
+                ) {
+                    if (isSaving) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    } else {
+                        Text("Update Category", fontSize = 16.sp, color = Color.White)
                     }
-                },
-                modifier = Modifier.fillMaxWidth().height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF000080)),
-                shape = RoundedCornerShape(24.dp)
-            ) {
-                Text("Update Category", fontSize = 16.sp, color = Color.White)
-            }
+                }
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-            Button(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier.fillMaxWidth().height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4C4C)),
-                shape = RoundedCornerShape(24.dp)
-            ) {
-                Text("Cancel", fontSize = 16.sp, color = Color.White)
+                Button(
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4C4C)),
+                    shape = RoundedCornerShape(24.dp)
+                ) {
+                    Text("Cancel", fontSize = 16.sp, color = Color.White)
+                }
             }
         }
     }

@@ -142,8 +142,8 @@ fun EditItemScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .height(300.dp)
+                        .clip(RoundedCornerShape(16.dp))
                         .background(Color(0xFFF0F0F0)),
                     contentAlignment = Alignment.Center
                 ) {
@@ -152,14 +152,14 @@ fun EditItemScreen(
                             bitmap = bitmap!!.asImageBitmap(),
                             contentDescription = null,
                             modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
+                            contentScale = ContentScale.Fit
                         )
                     } else if (itemImageUrl.isNotEmpty()) {
                         AsyncImage(
                             model = itemImageUrl,
                             contentDescription = null,
                             modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
+                            contentScale = ContentScale.Fit
                         )
                     } else {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -170,15 +170,23 @@ fun EditItemScreen(
                 }
 
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Button(onClick = { cameraLauncher.launch() }) {
+                    OutlinedButton(
+                        onClick = { cameraLauncher.launch() },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
                         Icon(Icons.Default.CameraAlt, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
                         Text("Camera")
                     }
-                    Button(onClick = { galleryLauncher.launch("image/*") }) {
+                    OutlinedButton(
+                        onClick = { galleryLauncher.launch("image/*") },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
                         Icon(Icons.Default.PhotoLibrary, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
                         Text("Gallery")
@@ -289,15 +297,24 @@ fun EditItemScreen(
 
                 Button(
                     onClick = {
+                        val priceVal = itemPrice.toDoubleOrNull()
+                        val stockVal = currentStock.toIntOrNull()
+
                         existingItem?.let { item ->
-                            if (itemName.isNotBlank()) {
+                            if (itemName.isBlank()) {
+                                scope.launch { snackbarHostState.showSnackbar("Item Name is required") }
+                            } else if (itemPrice.isBlank() || priceVal == null) {
+                                scope.launch { snackbarHostState.showSnackbar("Invalid Unit Price") }
+                            } else if (currentStock.isBlank() || stockVal == null) {
+                                scope.launch { snackbarHostState.showSnackbar("Invalid Current Stock") }
+                            } else {
                                 isSaving = true
                                 val updateAction = { imageUrl: String? ->
                                     val updatedItem = item.copy(
                                         itemName = itemName,
                                         itemSku = itemSku,
-                                        itemPrice = itemPrice.toDoubleOrNull() ?: item.itemPrice,
-                                        itemStockQuantity = currentStock.toIntOrNull() ?: item.itemStockQuantity,
+                                        itemPrice = priceVal,
+                                        itemStockQuantity = stockVal,
                                         itemMinStockLevel = minThreshold.toIntOrNull() ?: item.itemMinStockLevel,
                                         categoryId = selectedCategoryId,
                                         supplierId = selectedSupplierId,
@@ -310,7 +327,7 @@ fun EditItemScreen(
                                             navController.popBackStack()
                                         } else {
                                             scope.launch {
-                                                snackbarHostState.showSnackbar("Error: ${error ?: "Unknown error"}")
+                                                snackbarHostState.showSnackbar(error ?: "Failed to update item")
                                             }
                                         }
                                     }
@@ -322,10 +339,6 @@ fun EditItemScreen(
                                     itemViewModel.uploadImage(item.itemId, stream.toByteArray(), item.itemImageUrl, updateAction)
                                 } else {
                                     updateAction(null)
-                                }
-                            } else {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar("Item Name is required")
                                 }
                             }
                         }

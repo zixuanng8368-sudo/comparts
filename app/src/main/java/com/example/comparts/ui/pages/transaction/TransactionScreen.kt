@@ -209,15 +209,32 @@ fun TransactionScreen(
             } else if (filteredTransactions.isEmpty()) {
                 EmptyState(message = "No transactions match your criteria.")
             } else {
+                // Group transactions by date for timeline headers
+                val groupedTransactions = filteredTransactions.groupBy { transaction ->
+                    formatTimelineHeader(transaction.transactionDate)
+                }
+
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(bottom = 80.dp)
                 ) {
-                    items(filteredTransactions) { transaction ->
-                        val item = items.find { it.itemId == transaction.itemId }
-                        TransactionCard(transaction, item?.itemName ?: "Unknown Item", onClick = {
-                            navController.navigate("transaction_detail/${transaction.transactionId}")
-                        })
+                    groupedTransactions.forEach { (dateHeader, transactionList) ->
+                        item {
+                            Text(
+                                text = dateHeader,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color.Gray,
+                                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                            )
+                        }
+                        items(transactionList) { transaction ->
+                            val item = items.find { it.itemId == transaction.itemId }
+                            TransactionCard(transaction, item?.itemName ?: "Unknown Item", onClick = {
+                                navController.navigate("transaction_detail/${transaction.transactionId}")
+                            })
+                        }
                     }
                 }
             }
@@ -284,4 +301,25 @@ fun TransactionCard(transaction: Transaction, itemName: String, onClick: () -> U
             )
         }
     }
+}
+
+private fun formatTimelineHeader(dateString: String?): String {
+    if (dateString.isNullOrBlank()) return "Unknown Date"
+    val displayFormat = SimpleDateFormat("d MMM yyyy", Locale.getDefault())
+
+    // Try standard database format first, then ISO-8601
+    val formats = listOf(
+        SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()),
+        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+    )
+
+    for (format in formats) {
+        try {
+            val date = format.parse(dateString)
+            if (date != null) return displayFormat.format(date)
+        } catch (e: Exception) { /* Continue */ }
+    }
+    
+    // Fallback to just the date part if parsing fails
+    return dateString.split("T")[0].split(" ")[0]
 }

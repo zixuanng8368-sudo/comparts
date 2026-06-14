@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.comparts.data.model.Supplier
 import com.example.comparts.data.repository.SupplierRepository
+import com.example.comparts.util.mapThrowableToMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -39,26 +40,28 @@ class SupplierViewModel : ViewModel() {
         return repository.getSupplierById(supplierId)
     }
 
-    fun addSupplier(supplier: Supplier, onComplete: () -> Unit) {
+    fun addSupplier(supplier: Supplier, onResult: (Boolean, String?) -> Unit) {
         viewModelScope.launch {
             try {
                 repository.addSupplier(supplier)
                 loadSuppliers()
-                onComplete()
+                onResult(true, null)
             } catch (e: Exception) {
                 e.printStackTrace()
+                onResult(false, mapThrowableToMessage(e))
             }
         }
     }
 
-    fun updateSupplier(supplier: Supplier, onComplete: () -> Unit) {
+    fun updateSupplier(supplier: Supplier, onResult: (Boolean, String?) -> Unit) {
         viewModelScope.launch {
             try {
                 repository.updateSupplier(supplier)
                 loadSuppliers()
-                onComplete()
+                onResult(true, null)
             } catch (e: Exception) {
                 e.printStackTrace()
+                onResult(false, mapThrowableToMessage(e))
             }
         }
     }

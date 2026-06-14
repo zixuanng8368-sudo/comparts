@@ -26,7 +26,7 @@ import kotlinx.serialization.json.jsonPrimitive
 
 @Composable
 fun ProfileScreen(navController: NavController, authViewModel: AuthViewModel = viewModel()) {
-    var notificationEnabled by remember { mutableStateOf(true) }
+    val notificationEnabled by authViewModel.notificationsEnabled.collectAsState()
     var user by remember { mutableStateOf<UserInfo?>(null) }
     
     LaunchedEffect(Unit) {
@@ -72,7 +72,7 @@ fun ProfileScreen(navController: NavController, authViewModel: AuthViewModel = v
         ListItem(
             headlineContent = { Text("Edit Profile Information") },
             trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null) },
-            modifier = Modifier.clickable { /* Navigate to edit profile */ },
+            modifier = Modifier.clickable { navController.navigate("edit_profile") },
             colors = ListItemDefaults.colors(containerColor = Color.Transparent)
         )
 
@@ -85,7 +85,7 @@ fun ProfileScreen(navController: NavController, authViewModel: AuthViewModel = v
             trailingContent = {
                 Switch(
                     checked = notificationEnabled,
-                    onCheckedChange = { notificationEnabled = it },
+                    onCheckedChange = { authViewModel.setNotificationsEnabled(it) },
                     colors = SwitchDefaults.colors(checkedThumbColor = Color(0xFF4A61F7), checkedTrackColor = Color(0x664A61F7))
                 )
             },

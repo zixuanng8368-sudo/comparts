@@ -1,13 +1,19 @@
 // File path: app/src/main/java/com/example/comparts/MainActivity.kt
 package com.example.comparts
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -46,19 +52,40 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                registerForActivityResult(ActivityResultContracts.RequestPermission()) {}.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
 
         setContent {
             ComPartsTheme {
                 val navController = rememberNavController()
 
-                // Initialize ViewModels here so they share a single instance across screens
                 val itemViewModel: ItemViewModel = viewModel()
                 val supplierViewModel: SupplierViewModel = viewModel()
                 val transactionViewModel: TransactionViewModel = viewModel()
                 val categoryViewModel: CategoryViewModel = viewModel()
                 val authViewModel: AuthViewModel = viewModel()
 
-                // Track current route to hide bottom bar on Auth screens
+                // Auto-login logic
+                LaunchedEffect(Unit) {
+                    val user = authViewModel.currentUser()
+                    if (user != null) {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Login.route) { inclusive = true }
+                        }
+                    }
+                }
+
+                LaunchedEffect(intent) {
+                    val navigateTo = intent.getStringExtra("navigate_to")
+                    if (navigateTo == "items") {
+                        navController.navigate(Screen.Items.route)
+                    }
+                }
+
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
                 val showBottomBar = currentRoute in listOf(
@@ -71,7 +98,7 @@ class MainActivity : ComponentActivity() {
                     "add_item",
                     "add_transaction",
                     "add_supplier",
-                    "transaction" // Adding "transaction" route explicitly if needed
+                    "transaction"
                 )
 
                 Scaffold(
@@ -80,24 +107,17 @@ class MainActivity : ComponentActivity() {
                             BottomBar(navController)
                         }
                     }
-                ) { padding ->
+                ) { paddingValues ->
                     NavHost(
                         navController = navController,
                         startDestination = Screen.Login.route,
-                        modifier = Modifier.padding(padding)
+                        modifier = Modifier.padding(paddingValues)
                     ) {
-                        // --- Auth Routes ---
                         composable(Screen.Login.route) { LoginScreen(navController) }
                         composable(Screen.Signup.route) { SignupScreen(navController) }
-
-                        // --- Main App Routes ---
-                        composable(Screen.Home.route) { HomeScreen(navController, itemViewModel, supplierViewModel, transactionViewModel) }
-
-                        // --- Profile ---
+                        composable(Screen.Home.route) { HomeScreen(navController, itemViewModel, supplierViewModel, transactionViewModel, authViewModel) }
                         composable(Screen.Profile.route) { ProfileScreen(navController, authViewModel) }
                         composable("edit_profile") { EditProfileScreen(navController, authViewModel) }
-
-                        // --- Items / Inventory ---
                         composable(Screen.Items.route) { ItemScreen(navController, itemViewModel) }
                         composable("add_item") { AddItemScreen(navController, itemViewModel) }
                         composable("item_detail/{itemId}") { backStackEntry ->
@@ -108,16 +128,12 @@ class MainActivity : ComponentActivity() {
                             val itemId = backStackEntry.arguments?.getString("itemId")
                             EditItemScreen(navController, itemViewModel, itemId)
                         }
-
-                        // --- Suppliers ---
                         composable(Screen.Supplier.route) { SupplierScreen(navController, supplierViewModel) }
                         composable("add_supplier") { AddSupplierScreen(navController, supplierViewModel) }
                         composable("edit_supplier/{supplierId}") { backStackEntry ->
                             val supplierId = backStackEntry.arguments?.getString("supplierId")
                             EditSupplierScreen(navController, supplierViewModel, supplierId)
                         }
-
-                        // --- Transactions ---
                         composable(Screen.Transaction.route) { TransactionScreen(navController, transactionViewModel, itemViewModel) }
                         composable("add_transaction") { AddTransactionScreen(navController, transactionViewModel, itemViewModel, authViewModel) }
                         composable("transaction_detail/{transactionId}") { backStackEntry ->
@@ -128,11 +144,7 @@ class MainActivity : ComponentActivity() {
                             val transactionId = backStackEntry.arguments?.getString("transactionId")
                             EditTransactionScreen(navController, transactionId, transactionViewModel, itemViewModel, authViewModel)
                         }
-
-                        // --- Reports ---
-                        composable(Screen.Report.route) { ReportScreen() }
-
-                        // --- Categories ---
+                        composable(Screen.Report.route) { ReportScreen(itemViewModel, transactionViewModel, categoryViewModel) }
                         composable(Screen.Category.route) { CategoryScreen(navController, categoryViewModel) }
                         composable("add_category") { AddCategoryScreen(navController, categoryViewModel) }
                         composable("edit_category/{categoryId}") { backStackEntry ->

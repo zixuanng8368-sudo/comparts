@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.comparts.data.model.Item
 import com.example.comparts.data.repository.ItemRepository
+import com.example.comparts.util.mapThrowableToMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -47,7 +48,7 @@ class ItemViewModel : ViewModel() {
                 onResult(true, null)
             } catch (e: Exception) {
                 e.printStackTrace()
-                onResult(false, e.message)
+                onResult(false, mapThrowableToMessage(e))
             }
         }
     }
@@ -60,7 +61,7 @@ class ItemViewModel : ViewModel() {
                 onResult(true, null)
             } catch (e: Exception) {
                 e.printStackTrace()
-                onResult(false, e.message)
+                onResult(false, mapThrowableToMessage(e))
             }
         }
     }
