@@ -70,186 +70,201 @@ fun TransactionScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(16.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
         ) {
-            Column {
-                Text("Transactions", fontSize = 28.sp, fontWeight = FontWeight.Bold)
-                Text("Audit trail", fontSize = 14.sp, color = Color.Gray)
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Advanced Filter Controls
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            var filterMenuExpanded by remember { mutableStateOf(false) }
-            Box {
-                FilterChip(
-                    selected = filterType != "All",
-                    onClick = { filterMenuExpanded = true },
-                    label = { Text(filterType) },
-                    trailingIcon = { Icon(Icons.Default.FilterList, contentDescription = null, modifier = Modifier.size(18.dp)) }
-                )
-                DropdownMenu(expanded = filterMenuExpanded, onDismissRequest = { filterMenuExpanded = false }) {
-                    listOf("All", "Before", "After", "Between").forEach {
-                        DropdownMenuItem(text = { Text(it) }, onClick = {
-                            filterType = it
-                            filterMenuExpanded = false
-                            if (it == "All") {
-                                startDate = null
-                                endDate = null
-                            }
-                        })
-                    }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        "Transactions", 
+                        fontSize = 28.sp, 
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Text(
+                        "Audit trail", 
+                        fontSize = 14.sp, 
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
 
-            if (filterType != "All") {
-                FilterChip(
-                    selected = startDate != null,
-                    onClick = {
-                        pickingEndDate = false
-                        showDatePicker = true
-                    },
-                    label = {
-                        Text(if (startDate != null) SimpleDateFormat("dd/MM/yy", Locale.getDefault()).format(Date(startDate!!)) else "Start")
-                    }
-                )
-            }
-            if (filterType == "Between") {
-                FilterChip(
-                    selected = endDate != null,
-                    onClick = {
-                        pickingEndDate = true
-                        showDatePicker = true
-                    },
-                    label = {
-                        Text(if (endDate != null) SimpleDateFormat("dd/MM/yy", Locale.getDefault()).format(Date(endDate!!)) else "End")
-                    }
-                )
-            }
-        }
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        TextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
-            placeholder = { Text("Search part or ref...", color = Color.Gray) },
-            trailingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color(0xFFF0F0F0),
-                unfocusedContainerColor = Color(0xFFF0F0F0),
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            )
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        PullToRefreshBox(
-            isRefreshing = isRefreshing,
-            onRefresh = {
-                isRefreshing = true
-                viewModel.loadTransactions()
-                itemViewModel.loadItems()
-                isRefreshing = false
-            },
-            modifier = Modifier.weight(1f)
-        ) {
-            val filteredTransactions = transactions.filter { transaction ->
-                val itemName = items.find { it.itemId == transaction.itemId }?.itemName ?: ""
-                val matchesSearch = itemName.contains(searchQuery, ignoreCase = true) || 
-                                   transaction.transactionReferenceNumber?.contains(searchQuery, ignoreCase = true) == true
-                
-                val matchesDate = when (filterType) {
-                    "Before" -> startDate?.let { s -> 
-                        transaction.createdAt?.let { c ->
-                            val transDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(c)
-                            transDate?.before(Date(s)) ?: true
-                        } ?: true
-                    } ?: true
-                    "After" -> startDate?.let { s -> 
-                        transaction.createdAt?.let { c ->
-                            val transDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(c)
-                            transDate?.after(Date(s)) ?: true
-                        } ?: true
-                    } ?: true
-                    "Between" -> startDate?.let { s -> 
-                        endDate?.let { e ->
-                            transaction.createdAt?.let { c ->
-                                val transDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(c)
-                                transDate?.after(Date(s)) == true && transDate.before(Date(e))
-                            } ?: true
-                        } ?: true
-                    } ?: true
-                    else -> true
-                }
-                
-                matchesSearch && matchesDate
-            }
-
-            if (isLoading && transactions.isEmpty()) {
-                LoadingState()
-            } else if (filteredTransactions.isEmpty()) {
-                EmptyState(message = "No transactions match your criteria.")
-            } else {
-                // Group transactions by date for timeline headers
-                val groupedTransactions = filteredTransactions.groupBy { transaction ->
-                    formatTimelineHeader(transaction.transactionDate)
-                }
-
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(bottom = 80.dp)
-                ) {
-                    groupedTransactions.forEach { (dateHeader, transactionList) ->
-                        item {
-                            Text(
-                                text = dateHeader,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = Color.Gray,
-                                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
-                            )
-                        }
-                        items(transactionList) { transaction ->
-                            val item = items.find { it.itemId == transaction.itemId }
-                            TransactionCard(transaction, item?.itemName ?: "Unknown Item", onClick = {
-                                navController.navigate("transaction_detail/${transaction.transactionId}")
+            // Advanced Filter Controls
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                var filterMenuExpanded by remember { mutableStateOf(false) }
+                Box {
+                    FilterChip(
+                        selected = filterType != "All",
+                        onClick = { filterMenuExpanded = true },
+                        label = { Text(filterType) },
+                        trailingIcon = { Icon(Icons.Default.FilterList, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                    )
+                    DropdownMenu(expanded = filterMenuExpanded, onDismissRequest = { filterMenuExpanded = false }) {
+                        listOf("All", "Before", "After", "Between").forEach {
+                            DropdownMenuItem(text = { Text(it) }, onClick = {
+                                filterType = it
+                                filterMenuExpanded = false
+                                if (it == "All") {
+                                    startDate = null
+                                    endDate = null
+                                }
                             })
                         }
                     }
                 }
-            }
-        }
 
-        Button(
-            onClick = { navController.navigate("add_transaction") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp)
-                .height(50.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF000080)),
-            shape = RoundedCornerShape(24.dp)
-        ) {
-            Text("+ Add New Record", fontSize = 16.sp, color = Color.White)
+                if (filterType != "All") {
+                    FilterChip(
+                        selected = startDate != null,
+                        onClick = {
+                            pickingEndDate = false
+                            showDatePicker = true
+                        },
+                        label = {
+                            Text(if (startDate != null) SimpleDateFormat("dd/MM/yy", Locale.getDefault()).format(Date(startDate!!)) else "Start")
+                        }
+                    )
+                }
+                if (filterType == "Between") {
+                    FilterChip(
+                        selected = endDate != null,
+                        onClick = {
+                            pickingEndDate = true
+                            showDatePicker = true
+                        },
+                        label = {
+                            Text(if (endDate != null) SimpleDateFormat("dd/MM/yy", Locale.getDefault()).format(Date(endDate!!)) else "End")
+                        }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                placeholder = { Text("Search part or ref...", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
+                trailingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                )
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            PullToRefreshBox(
+                isRefreshing = isRefreshing,
+                onRefresh = {
+                    isRefreshing = true
+                    viewModel.loadTransactions()
+                    itemViewModel.loadItems()
+                    isRefreshing = false
+                },
+                modifier = Modifier.weight(1f)
+            ) {
+                val filteredTransactions = transactions.filter { transaction ->
+                    val itemName = items.find { it.itemId == transaction.itemId }?.itemName ?: ""
+                    val matchesSearch = itemName.contains(searchQuery, ignoreCase = true) || 
+                                       transaction.transactionReferenceNumber?.contains(searchQuery, ignoreCase = true) == true
+                    
+                    val matchesDate = when (filterType) {
+                        "Before" -> startDate?.let { s -> 
+                            transaction.createdAt?.let { c ->
+                                val transDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(c)
+                                transDate?.before(Date(s)) ?: true
+                            } ?: true
+                        } ?: true
+                        "After" -> startDate?.let { s -> 
+                            transaction.createdAt?.let { c ->
+                                val transDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(c)
+                                transDate?.after(Date(s)) ?: true
+                            } ?: true
+                        } ?: true
+                        "Between" -> startDate?.let { s -> 
+                            endDate?.let { e ->
+                                transaction.createdAt?.let { c ->
+                                    val transDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(c)
+                                    transDate?.after(Date(s)) == true && transDate.before(Date(e))
+                                } ?: true
+                            } ?: true
+                        } ?: true
+                        else -> true
+                    }
+                    
+                    matchesSearch && matchesDate
+                }
+
+                if (isLoading && transactions.isEmpty()) {
+                    LoadingState()
+                } else if (filteredTransactions.isEmpty()) {
+                    EmptyState(message = "No transactions match your criteria.")
+                } else {
+                    // Group transactions by date for timeline headers
+                    val groupedTransactions = filteredTransactions.groupBy { transaction ->
+                        formatTimelineHeader(transaction.transactionDate)
+                    }
+
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(bottom = 80.dp)
+                    ) {
+                        groupedTransactions.forEach { (dateHeader, transactionList) ->
+                            item {
+                                Text(
+                                    text = dateHeader,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                                )
+                            }
+                            items(transactionList) { transaction ->
+                                val item = items.find { it.itemId == transaction.itemId }
+                                TransactionCard(transaction, item?.itemName ?: "Unknown Item", onClick = {
+                                    navController.navigate("transaction_detail/${transaction.transactionId}")
+                                })
+                            }
+                        }
+                    }
+                }
+            }
+
+            Button(
+                onClick = { navController.navigate("add_transaction") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                shape = RoundedCornerShape(24.dp)
+            ) {
+                Text("+ Add New Record", fontSize = 16.sp, color = MaterialTheme.colorScheme.onPrimary)
+            }
         }
     }
 }
@@ -258,11 +273,16 @@ fun TransactionScreen(
 fun TransactionCard(transaction: Transaction, itemName: String, onClick: () -> Unit) {
     val isIncoming = transaction.transactionType.uppercase() == "IN"
     val accentColor = if (isIncoming) Color(0xFF00C853) else Color(0xFFFF4C4C)
+    val containerColor = if (isIncoming) {
+        if (androidx.compose.foundation.isSystemInDarkTheme()) Color(0xFF1B3921) else Color(0xFFE8F5E9)
+    } else {
+        if (androidx.compose.foundation.isSystemInDarkTheme()) Color(0xFF442B2D) else Color(0xFFFFEBEE)
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth().clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = if (isIncoming) Color(0xFFE8F5E9) else Color(0xFFFFEBEE))
+        colors = CardDefaults.cardColors(containerColor = containerColor)
     ) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
@@ -286,10 +306,24 @@ fun TransactionCard(transaction: Transaction, itemName: String, onClick: () -> U
             Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = itemName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Text(text = "Ref: ${transaction.transactionReferenceNumber ?: "N/A"}", fontSize = 12.sp, color = Color.Gray)
+                Text(
+                    text = itemName, 
+                    fontWeight = FontWeight.Bold, 
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "Ref: ${transaction.transactionReferenceNumber ?: "N/A"}", 
+                    fontSize = 12.sp, 
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 transaction.transactionNotes?.let {
-                    Text(text = it, fontSize = 12.sp, color = Color.Gray, maxLines = 1)
+                    Text(
+                        text = it, 
+                        fontSize = 12.sp, 
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                        maxLines = 1
+                    )
                 }
             }
 

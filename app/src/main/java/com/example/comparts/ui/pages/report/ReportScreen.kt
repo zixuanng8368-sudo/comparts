@@ -126,7 +126,7 @@ fun ReportScreen(
     val pdfLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri: Uri? ->
         uri?.let {
             val report = "INVENTORY REPORT - ${tabs[selectedTabIndex].uppercase()}\n" +
-                         "Generated on: ${SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date())}\n\n" +
+                         "Generated on: ${SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date())}\n\n" +
                          "Net In: +$netStockIn units\nNet Out: -$netStockOut units\nTotal Value: RM ${String.format(Locale.US, "%.2f", totalInventoryValue)}\n\n" +
                          "Transaction Summary:\n" + csvContent
             context.contentResolver.openOutputStream(it)?.use { stream ->
@@ -138,23 +138,24 @@ fun ReportScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8F9FA))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Text(
             text = "Analytics & Reports",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
+            color = MaterialTheme.colorScheme.onBackground
         )
 
         TabRow(
             selectedTabIndex = selectedTabIndex,
-            containerColor = Color.White,
-            contentColor = Color(0xFF4A61F7),
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.primary,
             indicator = { tabPositions ->
                 TabRowDefaults.SecondaryIndicator(
                     Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
-                    color = Color(0xFF4A61F7)
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
         ) {
@@ -193,28 +194,28 @@ fun ReportScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text("Category Value Distribution", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
+            Text("Category Value Distribution", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp), color = MaterialTheme.colorScheme.onBackground)
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     if (categoryDistribution.isEmpty()) {
-                        Text("No data available", color = Color.Gray, modifier = Modifier.padding(vertical = 24.dp).align(Alignment.CenterHorizontally))
+                        Text("No data available", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 24.dp).align(Alignment.CenterHorizontally))
                     } else {
                         categoryDistribution.forEach { (name, percent) ->
                             Column(modifier = Modifier.padding(vertical = 8.dp)) {
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Text(name, fontSize = 14.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                    Text("${(percent * 100).toInt()}%", fontSize = 14.sp, color = Color.Gray)
+                                    Text(name, fontSize = 14.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurface)
+                                    Text("${(percent * 100).toInt()}%", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                                 LinearProgressIndicator(
                                     progress = { percent },
                                     modifier = Modifier.fillMaxWidth().height(8.dp).padding(top = 4.dp),
-                                    color = Color(0xFF4A61F7),
-                                    trackColor = Color(0xFFF1F3F4),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
                                     strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
                                 )
                             }
@@ -225,16 +226,16 @@ fun ReportScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text("Top Moving Parts", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
+            Text("Top Moving Parts", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp), color = MaterialTheme.colorScheme.onBackground)
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     if (topMovingItems.isEmpty()) {
-                        Text("No movement in this period", color = Color.Gray, modifier = Modifier.padding(vertical = 24.dp).align(Alignment.CenterHorizontally))
+                        Text("No movement in this period", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 24.dp).align(Alignment.CenterHorizontally))
                     } else {
                         topMovingItems.forEachIndexed { index, (name, qty) ->
                             Row(
@@ -242,16 +243,16 @@ fun ReportScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Box(
-                                    modifier = Modifier.size(32.dp).background(Color(0xFF4A61F7).copy(alpha = 0.1f), CircleShape),
+                                    modifier = Modifier.size(32.dp).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("${index + 1}", color = Color(0xFF4A61F7), fontWeight = FontWeight.Bold)
+                                    Text("${index + 1}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                                 }
                                 Spacer(modifier = Modifier.width(12.dp))
-                                Text(name, modifier = Modifier.weight(1f), fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                Text(name, modifier = Modifier.weight(1f), fontSize = 14.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                                 Text("$qty units out", color = Color(0xFFFF4C4C), fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             }
-                            if (index < topMovingItems.size - 1) HorizontalDivider(color = Color(0xFFF1F3F4))
+                            if (index < topMovingItems.size - 1) HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                         }
                     }
                 }
@@ -262,7 +263,7 @@ fun ReportScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF4A61F7)),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Row(
@@ -270,10 +271,10 @@ fun ReportScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Total Inventory Value", color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
+                        Text("Total Inventory Value", color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f), fontSize = 14.sp)
                         Text(
                             text = "RM ${String.format(Locale.US, "%.2f", totalInventoryValue)}",
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onPrimary,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.ExtraBold
                         )
@@ -283,7 +284,7 @@ fun ReportScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text("Export Reports", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
+            Text("Export Reports", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp), color = MaterialTheme.colorScheme.onBackground)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -294,7 +295,7 @@ fun ReportScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Export Summary", fontWeight = FontWeight.Bold)
+                    Text("Export Summary", fontWeight = FontWeight.Bold, color = Color.White)
                 }
                 Button(
                     onClick = { excelLauncher.launch("inventory_${System.currentTimeMillis()}.csv") },
@@ -302,7 +303,7 @@ fun ReportScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1D6F42)),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Excel CSV", fontWeight = FontWeight.Bold)
+                    Text("Excel CSV", fontWeight = FontWeight.Bold, color = Color.White)
                 }
             }
             
@@ -316,11 +317,11 @@ fun ReportMetricCard(title: String, value: String, textColor: Color, modifier: M
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            Text(text = title, fontSize = 12.sp, color = Color.Gray)
+            Text(text = title, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(text = value, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = textColor)
         }
     }

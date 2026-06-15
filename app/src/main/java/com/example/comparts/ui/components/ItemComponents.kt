@@ -24,8 +24,8 @@ fun EmptyState(message: String) {
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = "No Data Found", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
-            Text(text = message, fontSize = 14.sp, color = Color.Gray)
+            Text(text = "No Data Found", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(text = message, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -36,7 +36,7 @@ fun LoadingState() {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        CircularProgressIndicator(color = Color(0xFF4A61F7))
+        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
     }
 }
 
@@ -49,7 +49,7 @@ fun InventoryCard(
     quantity: String,
     stockStatus: String,
     badgeColor: Color,
-    cardColor: Color,
+    cardColor: Color = MaterialTheme.colorScheme.primary,
     imageUrl: String?,
     onClick: () -> Unit
 ) {
@@ -67,7 +67,7 @@ fun InventoryCard(
                 modifier = Modifier
                     .size(80.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color.White.copy(alpha = 0.2f)),
+                    .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
             ) {
                 if (!imageUrl.isNullOrBlank()) {
@@ -75,10 +75,10 @@ fun InventoryCard(
                         model = imageUrl,
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Fit
                     )
                 } else {
-                    Text(category.take(1).uppercase(), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 24.sp)
+                    Text(category.take(1).uppercase(), color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, fontSize = 24.sp)
                 }
             }
 
@@ -86,12 +86,12 @@ fun InventoryCard(
 
             // Item Info
             Column(modifier = Modifier.weight(1f)) {
-                Text(name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Text("SKU: $sku", color = Color(0xFFB0C4DE), fontSize = 12.sp)
+                Text(name, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text("SKU: $sku", color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f), fontSize = 12.sp)
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
-                    Text("Cat: $category", color = Color(0xFFB0C4DE), fontSize = 12.sp)
+                    Text("Cat: $category", color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f), fontSize = 12.sp)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(price, color = Color(0xFFB0C4DE), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text(price, color = MaterialTheme.colorScheme.onPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -99,7 +99,7 @@ fun InventoryCard(
             Column(horizontalAlignment = Alignment.End) {
                 Text(
                     text = quantity,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.ExtraBold
                 )
@@ -111,7 +111,7 @@ fun InventoryCard(
                 ) {
                     Text(
                         text = stockStatus,
-                        color = Color.White,
+                        color = Color.White, // Badge text remains white for contrast on high-saturation colors
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -128,17 +128,17 @@ fun BlueTextField(
     onValueChange: (String) -> Unit,
     label: String,
     placeholder: String,
-    bgColor: Color,
-    textColor: Color,
+    bgColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    textColor: Color = MaterialTheme.colorScheme.onSurface,
     modifier: Modifier = Modifier,
     singleLine: Boolean = true
 ) {
     Column(modifier = modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-        Text(text = label, color = Color.Gray, fontSize = 14.sp, modifier = Modifier.padding(bottom = 4.dp))
+        Text(text = label, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp, modifier = Modifier.padding(bottom = 4.dp))
         TextField(
             value = value,
             onValueChange = onValueChange,
-            placeholder = { Text(placeholder, color = textColor.copy(alpha = 0.6f)) },
+            placeholder = { Text(placeholder, color = textColor.copy(alpha = 0.5f)) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             singleLine = singleLine,

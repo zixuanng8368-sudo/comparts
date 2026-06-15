@@ -34,13 +34,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.comparts.data.model.Item
-import com.example.comparts.data.remote.SupabaseClient
 import com.example.comparts.ui.components.BlueTextField
 import com.example.comparts.viewmodel.ItemViewModel
 import com.example.comparts.viewmodel.CategoryViewModel
 import com.example.comparts.viewmodel.SupplierViewModel
 import com.example.comparts.util.SkuGenerator
-import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.util.UUID
@@ -68,7 +66,7 @@ fun AddItemScreen(
     
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
     val context = LocalContext.current
-    val primaryBlue = Color(0xFF4A61F7)
+    val primaryBlue = MaterialTheme.colorScheme.primary
 
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let {
@@ -92,24 +90,29 @@ fun AddItemScreen(
     var categoryExpanded by remember { mutableStateOf(false) }
     var supplierExpanded by remember { mutableStateOf(false) }
 
-    val fieldColor = Color(0xFF5A75FF)
-    val textColor = Color.White
+    val fieldColor = MaterialTheme.colorScheme.surfaceVariant
+    val textColor = MaterialTheme.colorScheme.onSurface
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
                 .padding(paddingValues)
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 24.dp, top = 8.dp)) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", modifier = Modifier.clickable { navController.popBackStack() })
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack, 
+                    contentDescription = "Back", 
+                    modifier = Modifier.clickable { navController.popBackStack() },
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
                 Spacer(modifier = Modifier.width(16.dp))
-                Text("Add New Item", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Text("Add New Item", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             }
 
             // Image Picker UI
@@ -118,7 +121,7 @@ fun AddItemScreen(
                     .fillMaxWidth()
                     .height(300.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0xFFF0F0F0)),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
                 if (bitmap != null) {
@@ -130,8 +133,8 @@ fun AddItemScreen(
                     )
                 } else {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.CameraAlt, contentDescription = null, modifier = Modifier.size(48.dp), tint = Color.Gray)
-                        Text("Add Item Image", color = Color.Gray)
+                        Icon(Icons.Default.CameraAlt, contentDescription = null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Add Item Image", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -164,7 +167,7 @@ fun AddItemScreen(
             BlueTextField(value = itemSku, onValueChange = { itemSku = it }, label = "SKU*", placeholder = "Generated SKU", bgColor = fieldColor, textColor = textColor)
 
             // Category Dropdown
-            Text(text = "Category*", color = Color.Gray, fontSize = 14.sp, modifier = Modifier.padding(bottom = 4.dp))
+            Text(text = "Category*", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp, modifier = Modifier.padding(bottom = 4.dp))
             ExposedDropdownMenuBox(
                 expanded = categoryExpanded,
                 onExpandedChange = { categoryExpanded = !categoryExpanded },
@@ -222,7 +225,7 @@ fun AddItemScreen(
             BlueTextField(value = minThreshold, onValueChange = { minThreshold = it }, label = "Min. Threshold", placeholder = "0", bgColor = fieldColor, textColor = textColor)
 
             // Supplier Dropdown
-            Text(text = "Supplier", color = Color.Gray, fontSize = 14.sp, modifier = Modifier.padding(bottom = 4.dp))
+            Text(text = "Supplier", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp, modifier = Modifier.padding(bottom = 4.dp))
             ExposedDropdownMenuBox(
                 expanded = supplierExpanded,
                 onExpandedChange = { supplierExpanded = !supplierExpanded },
@@ -322,13 +325,13 @@ fun AddItemScreen(
                 },
                 enabled = !isSaving,
                 modifier = Modifier.fillMaxWidth().height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF000080)),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(24.dp)
             ) {
                 if (isSaving) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
                 } else {
-                    Text("Add Item", fontSize = 16.sp, color = Color.White)
+                    Text("Add Item", fontSize = 16.sp, color = MaterialTheme.colorScheme.onPrimary)
                 }
             }
 

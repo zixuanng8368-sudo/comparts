@@ -1,6 +1,7 @@
 package com.example.comparts.ui.pages.auth
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,14 +36,10 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel = viewMod
         }
     }
 
-
-    // Colors to match the mockup
-    val primaryPurple = Color(0xFF6B58F5)
-    val lightGrey = Color(0xFFF0F0F0)
-
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 24.dp, vertical = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -63,48 +60,54 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel = viewMod
             Text(
                 text = "Sign in to your",
                 fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
             )
             Text(
                 text = "Account",
                 fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
             )
             Text(
                 text = "Enter your email and password to log in",
                 fontSize = 14.sp,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 24.dp, top = 4.dp)
             )
 
-            Text(text = "Email", fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
+            Text(text = "Email", fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp), color = MaterialTheme.colorScheme.onBackground)
             TextField(
                 value = email,
                 onValueChange = { email = it },
-                placeholder = { Text("Johndoe@example.com", color = Color.Gray) },
+                placeholder = { Text("Johndoe@example.com", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = lightGrey,
-                    unfocusedContainerColor = lightGrey,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent
                 )
             )
 
-            Text(text = "Password", fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
+            Text(text = "Password", fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp), color = MaterialTheme.colorScheme.onBackground)
             TextField(
                 value = password,
                 onValueChange = { password = it },
-                placeholder = { Text("********", color = Color.Gray) },
+                placeholder = { Text("********", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = lightGrey,
-                    unfocusedContainerColor = lightGrey,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent
                 )
@@ -113,9 +116,6 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel = viewMod
             Button(
                 onClick = {
                     if (email.isBlank() || password.isBlank()) {
-                        // We can't easily show a snackbar here without a scaffold state, 
-                        // but the ViewModel will handle the error if we send empty strings.
-                        // However, let's trigger the VM and let Supabase return an error or add local validation state.
                         viewModel.signIn(email, password)
                     } else {
                         viewModel.signIn(email, password)
@@ -125,20 +125,20 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel = viewMod
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = primaryPurple),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 if (authState is AuthState.Loading) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
                 } else {
-                    Text("Login", fontSize = 16.sp)
+                    Text("Login", fontSize = 16.sp, color = MaterialTheme.colorScheme.onPrimary)
                 }
             }
 
             if (authState is AuthState.Error) {
                 Text(
                     text = (authState as AuthState.Error).message,
-                    color = Color.Red,
+                    color = MaterialTheme.colorScheme.error,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(top = 8.dp)
                 )
@@ -151,11 +151,11 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel = viewMod
         Row(
             modifier = Modifier.padding(bottom = 16.dp)
         ) {
-            Text("Don't have an account? ", fontSize = 14.sp)
+            Text("Don't have an account? ", fontSize = 14.sp, color = MaterialTheme.colorScheme.onBackground)
             Text(
                 text = "Sign Up",
                 fontSize = 14.sp,
-                color = primaryPurple,
+                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.clickable { navController.navigate("signup") }
             )

@@ -3,11 +3,11 @@ package com.example.comparts.ui.pages.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
@@ -46,8 +46,8 @@ fun WeeklyFlowChart(transactions: List<Transaction>) {
 
     // Calculate dynamic max value for scaling
     val rawMax = (inData + outData).maxOrNull()?.coerceAtLeast(1) ?: 1
-    // Round up to nearest 10 for clean scale
-    val maxVal = ((rawMax + 9) / 10) * 10
+    // Find the next nice round number (multiple of 10 or 50 based on size)
+    val maxVal = if (rawMax < 10) 10 else if (rawMax < 50) ((rawMax + 9) / 10) * 10 else ((rawMax + 49) / 50) * 50
 
     Row(
         modifier = Modifier
@@ -63,18 +63,18 @@ fun WeeklyFlowChart(transactions: List<Transaction>) {
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.End
         ) {
-            Text(text = maxVal.toString(), fontSize = 10.sp, color = Color.Gray)
-            Text(text = (maxVal / 2).toString(), fontSize = 10.sp, color = Color.Gray)
-            Text(text = "0", fontSize = 10.sp, color = Color.Gray)
+            Text(text = maxVal.toString(), fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(text = (maxVal / 2).toString(), fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(text = "0", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
 
         // Chart Area
         Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
             // Horizontal Guide Lines
             Column(modifier = Modifier.fillMaxSize().padding(bottom = 24.dp), verticalArrangement = Arrangement.SpaceBetween) {
-                HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray.copy(alpha = 0.3f))
-                HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray.copy(alpha = 0.3f))
-                HorizontalDivider(thickness = 0.5.dp, color = Color.Gray.copy(alpha = 0.5f))
+                HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
             }
 
             // Bars
@@ -88,10 +88,11 @@ fun WeeklyFlowChart(transactions: List<Transaction>) {
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.weight(1f).fillMaxHeight()
                     ) {
-                        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.BottomCenter) {
+                        Box(modifier = Modifier.weight(1f).padding(bottom = 24.dp), contentAlignment = Alignment.BottomCenter) {
                             Row(
                                 verticalAlignment = Alignment.Bottom,
-                                horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                                modifier = Modifier.fillMaxHeight()
                             ) {
                                 // IN Bar (Green) - Solid Rectangle
                                 Box(
@@ -113,9 +114,9 @@ fun WeeklyFlowChart(transactions: List<Transaction>) {
                         Text(
                             text = dayLabels[index],
                             fontSize = 10.sp,
-                            color = Color.Gray,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(top = 8.dp).height(16.dp)
+                            modifier = Modifier.offset(y = (-16).dp)
                         )
                     }
                 }

@@ -41,15 +41,15 @@ fun EditProfileScreen(navController: NavController, authViewModel: AuthViewModel
         }
     }
 
-    val primaryPurple = Color(0xFF6B58F5)
+    val primaryColor = MaterialTheme.colorScheme.primary
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
@@ -57,10 +57,11 @@ fun EditProfileScreen(navController: NavController, authViewModel: AuthViewModel
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    modifier = Modifier.clickable { navController.popBackStack() }
+                    modifier = Modifier.clickable { navController.popBackStack() },
+                    tint = MaterialTheme.colorScheme.onBackground
                 )
                 Spacer(modifier = Modifier.width(16.dp))
-                Text("Edit Profile", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Text("Edit Profile", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             }
 
             BlueTextField(
@@ -68,8 +69,8 @@ fun EditProfileScreen(navController: NavController, authViewModel: AuthViewModel
                 onValueChange = { username = it },
                 label = "Username",
                 placeholder = "Enter your username",
-                bgColor = Color(0xFFF0F0F0),
-                textColor = Color.Black
+                bgColor = MaterialTheme.colorScheme.surfaceVariant,
+                textColor = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -85,21 +86,21 @@ fun EditProfileScreen(navController: NavController, authViewModel: AuthViewModel
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = primaryPurple),
+                colors = ButtonDefaults.buttonColors(containerColor = primaryColor),
                 shape = RoundedCornerShape(12.dp),
                 enabled = authState !is AuthState.Loading
             ) {
                 if (authState is AuthState.Loading) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
                 } else {
-                    Text("Save Changes", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("Save Changes", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                 }
             }
 
             if (authState is AuthState.Error) {
                 Text(
                     text = (authState as AuthState.Error).message,
-                    color = Color.Red,
+                    color = MaterialTheme.colorScheme.error,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(top = 8.dp)
                 )

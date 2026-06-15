@@ -41,17 +41,18 @@ fun ItemScreen(
 
     var isRefreshing by remember { mutableStateOf(false) }
 
-    val primaryBlue = Color(0xFF4A61F7)
+    val primaryBlue = MaterialTheme.colorScheme.primary
     val criticalRed = Color(0xFFFF4C4C)
     val warningOrange = Color(0xFFFF9800)
     val healthyGreen = Color(0xFF00C853)
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navController.navigate("add_item") },
                 containerColor = primaryBlue,
-                contentColor = Color.White,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Item")
@@ -61,7 +62,6 @@ fun ItemScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp)
         ) {
@@ -72,11 +72,24 @@ fun ItemScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text("Inventory", fontSize = 28.sp, fontWeight = FontWeight.Bold)
-                    Text("${items.size} items tracked", fontSize = 14.sp, color = Color.Gray)
+                    Text(
+                        "Inventory", 
+                        fontSize = 28.sp, 
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Text(
+                        "${items.size} items tracked", 
+                        fontSize = 14.sp, 
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
                 IconButton(onClick = { navController.navigate("category") }) {
-                    Icon(Icons.Default.Category, contentDescription = "Categories", tint = primaryBlue)
+                    Icon(
+                        Icons.Default.Category, 
+                        contentDescription = "Categories", 
+                        tint = primaryBlue
+                    )
                 }
             }
 
@@ -86,13 +99,15 @@ fun ItemScreen(
             TextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                placeholder = { Text("Search by part name...", color = Color.Gray) },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.Gray) },
+                placeholder = { Text("Search by part name...", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFF5F6F7),
-                    unfocusedContainerColor = Color(0xFFF5F6F7),
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent
                 )
@@ -139,7 +154,7 @@ fun ItemScreen(
                                         item.itemStockQuantity > 0 -> warningOrange
                                         else -> criticalRed
                                     },
-                                    cardColor = primaryBlue,
+                                    cardColor = MaterialTheme.colorScheme.primary,
                                     imageUrl = item.itemImageUrl,
                                     onClick = { navController.navigate("item_detail/${item.itemId}") }
                                 )

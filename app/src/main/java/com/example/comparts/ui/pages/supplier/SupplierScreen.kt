@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
@@ -32,75 +33,89 @@ fun SupplierScreen(navController: NavController, viewModel: SupplierViewModel = 
     var searchQuery by remember { mutableStateOf("") }
     var isRefreshing by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(16.dp)
-    ) {
-        Text("Suppliers", fontSize = 28.sp, fontWeight = FontWeight.Bold)
-        Text("${suppliers.size} suppliers linked", fontSize = 14.sp, color = Color.Gray)
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Search Bar
-        TextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
-            placeholder = { Text("Search Suppliers", color = Color.Gray) },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.Gray) },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color(0xFFF0F0F0),
-                unfocusedContainerColor = Color(0xFFF0F0F0),
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            )
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        PullToRefreshBox(
-            isRefreshing = isRefreshing,
-            onRefresh = {
-                isRefreshing = true
-                viewModel.loadSuppliers()
-                isRefreshing = false
-            },
-            modifier = Modifier.weight(1f)
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { navController.navigate("add_supplier") },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add Supplier")
+            }
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp)
         ) {
-            val filteredSuppliers = suppliers.filter { it.supplierName.contains(searchQuery, ignoreCase = true) }
-            
-            if (isLoading && suppliers.isEmpty()) {
-                LoadingState()
-            } else if (filteredSuppliers.isEmpty()) {
-                EmptyState(message = "Keep track of your parts providers here.")
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(filteredSuppliers) { supplier ->
-                        SupplierCard(supplier, onClick = {
-                            navController.navigate("edit_supplier/${supplier.supplierId}")
-                        })
+            Text(
+                "Suppliers", 
+                fontSize = 28.sp, 
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(top = 16.dp)
+            )
+            Text(
+                "${suppliers.size} suppliers linked", 
+                fontSize = 14.sp, 
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Search Bar
+            TextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                placeholder = { Text("Search Suppliers", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                )
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            PullToRefreshBox(
+                isRefreshing = isRefreshing,
+                onRefresh = {
+                    isRefreshing = true
+                    viewModel.loadSuppliers()
+                    isRefreshing = false
+                },
+                modifier = Modifier.weight(1f)
+            ) {
+                val filteredSuppliers = suppliers.filter { it.supplierName.contains(searchQuery, ignoreCase = true) }
+                
+                if (isLoading && suppliers.isEmpty()) {
+                    LoadingState()
+                } else if (filteredSuppliers.isEmpty()) {
+                    EmptyState(message = "Keep track of your parts providers here.")
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(bottom = 80.dp)
+                    ) {
+                        items(filteredSuppliers) { supplier ->
+                            SupplierCard(supplier, onClick = {
+                                navController.navigate("edit_supplier/${supplier.supplierId}")
+                            })
+                        }
                     }
                 }
             }
-        }
-
-        // Add Button
-        Button(
-            onClick = { navController.navigate("add_supplier") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp)
-                .height(50.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF000080)),
-            shape = RoundedCornerShape(24.dp)
-        ) {
-            Text("+ Add New Supplier", fontSize = 16.sp, color = Color.White)
         }
     }
 }
@@ -110,15 +125,28 @@ fun SupplierCard(supplier: Supplier, onClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth().clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F2FF))
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = supplier.supplierName, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF4A61F7))
+            Text(
+                text = supplier.supplierName, 
+                fontWeight = FontWeight.Bold, 
+                fontSize = 18.sp, 
+                color = MaterialTheme.colorScheme.primary
+            )
             if (!supplier.supplierEmail.isNullOrBlank()) {
-                Text(text = "Email: ${supplier.supplierEmail}", fontSize = 14.sp, color = Color.DarkGray)
+                Text(
+                    text = "Email: ${supplier.supplierEmail}", 
+                    fontSize = 14.sp, 
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
             if (!supplier.supplierPhoneNumber.isNullOrBlank()) {
-                Text(text = "Phone: ${supplier.supplierPhoneNumber}", fontSize = 14.sp, color = Color.DarkGray)
+                Text(
+                    text = "Phone: ${supplier.supplierPhoneNumber}", 
+                    fontSize = 14.sp, 
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

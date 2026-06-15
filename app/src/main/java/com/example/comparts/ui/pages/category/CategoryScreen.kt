@@ -29,56 +29,73 @@ fun CategoryScreen(navController: NavController, viewModel: CategoryViewModel = 
     val categories by viewModel.categories.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(16.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(bottom = 16.dp)
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
         ) {
-            IconButton(onClick = { navController.popBackStack() }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 16.dp)
+            ) {
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack, 
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    "Categories", 
+                    fontSize = 28.sp, 
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
             }
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Categories", fontSize = 28.sp, fontWeight = FontWeight.Bold)
-        }
-        Text("${categories.size} categories total", fontSize = 14.sp, color = Color.Gray)
+            Text(
+                "${categories.size} categories total", 
+                fontSize = 14.sp, 
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Box(modifier = Modifier.weight(1f)) {
-            if (isLoading) {
-                LoadingState()
-            } else if (categories.isEmpty()) {
-                EmptyState(message = "Define categories for your computer parts.")
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(categories) { category ->
-                        CategoryCard(category, onClick = {
-                            navController.navigate("edit_category/${category.categoryId}")
-                        })
+            Box(modifier = Modifier.weight(1f)) {
+                if (isLoading) {
+                    LoadingState()
+                } else if (categories.isEmpty()) {
+                    EmptyState(message = "Define categories for your computer parts.")
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(categories) { category ->
+                            CategoryCard(category, onClick = {
+                                navController.navigate("edit_category/${category.categoryId}")
+                            })
+                        }
                     }
                 }
             }
-        }
 
-        // Add Button
-        Button(
-            onClick = { navController.navigate("add_category") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp)
-                .height(50.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF000080)),
-            shape = RoundedCornerShape(24.dp)
-        ) {
-            Text("+ Add New Category", fontSize = 16.sp, color = Color.White)
+            // Add Button
+            Button(
+                onClick = { navController.navigate("add_category") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                shape = RoundedCornerShape(24.dp)
+            ) {
+                Text("+ Add New Category", fontSize = 16.sp, color = MaterialTheme.colorScheme.onPrimary)
+            }
         }
     }
 }
@@ -88,12 +105,21 @@ fun CategoryCard(category: Category, onClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth().clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F2FF))
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = category.categoryName, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF4A61F7))
+            Text(
+                text = category.categoryName, 
+                fontWeight = FontWeight.Bold, 
+                fontSize = 18.sp, 
+                color = MaterialTheme.colorScheme.primary
+            )
             if (!category.categoryDescription.isNullOrBlank()) {
-                Text(text = category.categoryDescription, fontSize = 14.sp, color = Color.DarkGray)
+                Text(
+                    text = category.categoryDescription, 
+                    fontSize = 14.sp, 
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

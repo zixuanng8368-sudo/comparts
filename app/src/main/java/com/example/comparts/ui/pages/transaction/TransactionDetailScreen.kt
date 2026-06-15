@@ -46,7 +46,7 @@ fun TransactionDetailScreen(
         }
     }
 
-    val primaryBlue = Color(0xFF4A61F7)
+    val primaryBlue = MaterialTheme.colorScheme.primary
     val accentColor = if (transaction?.transactionType == "IN") Color(0xFF00C853) else Color(0xFFFF4C4C)
 
     val isoFormatter = DateTimeFormatter.ISO_DATE_TIME
@@ -61,65 +61,70 @@ fun TransactionDetailScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 24.dp, top = 8.dp)) {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                modifier = Modifier.clickable { navController.popBackStack() }
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Text("Transaction Details", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-        }
-
-        if (transaction == null) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Transaction not found")
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 24.dp, top = 8.dp)) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    modifier = Modifier.clickable { navController.popBackStack() },
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text("Transaction Details", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             }
-        } else {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FA))
-            ) {
-                Column(modifier = Modifier.padding(24.dp)) {
-                    DetailRow("Item Name", item?.itemName ?: "Unknown")
-                    DetailRow("Type", transaction.transactionType, textColor = accentColor)
-                    DetailRow("Quantity", transaction.transactionQuantity.toString())
-                    DetailRow("Reference", transaction.transactionReferenceNumber ?: "N/A")
-                    DetailRow("Date", transaction.transactionDate ?: "N/A")
-                    DetailRow("Notes", transaction.transactionNotes ?: "None")
-                    DetailRow("Created By", createdByName)
-                    DetailRow("Updated By", updatedByName)
-                    DetailRow("Created At", formatTimestamp(transaction.createdAt))
-                    DetailRow("Updated At", formatTimestamp(transaction.updatedAt))
+
+            if (transaction == null) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Transaction not found", color = MaterialTheme.colorScheme.onBackground)
                 }
-            }
+            } else {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                ) {
+                    Column(modifier = Modifier.padding(24.dp)) {
+                        DetailRow("Item Name", item?.itemName ?: "Unknown")
+                        DetailRow("Type", transaction.transactionType, textColor = accentColor)
+                        DetailRow("Quantity", transaction.transactionQuantity.toString())
+                        DetailRow("Reference", transaction.transactionReferenceNumber ?: "N/A")
+                        DetailRow("Date", transaction.transactionDate ?: "N/A")
+                        DetailRow("Notes", transaction.transactionNotes ?: "None")
+                        DetailRow("Created By", createdByName)
+                        DetailRow("Updated By", updatedByName)
+                        DetailRow("Created At", formatTimestamp(transaction.createdAt))
+                        DetailRow("Updated At", formatTimestamp(transaction.updatedAt))
+                    }
+                }
 
-            Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
-            Button(
-                onClick = { navController.navigate("edit_transaction/${transaction.transactionId}") },
-                modifier = Modifier.fillMaxWidth().height(55.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Text("Edit Transaction", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Button(
+                    onClick = { navController.navigate("edit_transaction/${transaction.transactionId}") },
+                    modifier = Modifier.fillMaxWidth().height(55.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text("Edit Transaction", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
+                }
             }
         }
     }
 }
 
 @Composable
-fun DetailRow(label: String, value: String, textColor: Color = Color.Black) {
+private fun DetailRow(label: String, value: String, textColor: Color = MaterialTheme.colorScheme.onSurface) {
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
-        Text(label, color = Color.Gray, fontSize = 14.sp)
+        Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
         Text(value, color = textColor, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
     }
 }

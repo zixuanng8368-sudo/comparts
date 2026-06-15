@@ -47,7 +47,7 @@ fun ItemDetailScreen(
     val suppliers by supplierViewModel.suppliers.collectAsState()
     val supplierName = suppliers.find { it.supplierId == item?.supplierId }?.supplierName ?: "N/A"
 
-    val primaryBlue = Color(0xFF4A61F7)
+    val primaryBlue = MaterialTheme.colorScheme.primary
     
     val isoFormatter = DateTimeFormatter.ISO_DATE_TIME
     val displayFormatter = DateTimeFormatter.ofPattern("MMM dd, yyyy - hh:mm a", Locale.US)
@@ -61,87 +61,92 @@ fun ItemDetailScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 24.dp, top = 8.dp)) {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                modifier = Modifier.clickable { navController.popBackStack() }
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Text("Item Details", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-        }
-
-        if (item == null) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Item not found")
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 24.dp, top = 8.dp)) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    modifier = Modifier.clickable { navController.popBackStack() },
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text("Item Details", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             }
-        } else {
-            // Item Image
-            if (!item.itemImageUrl.isNullOrEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color(0xFFF0F0F0)),
-                    contentAlignment = Alignment.Center
+
+            if (item == null) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Item not found", color = MaterialTheme.colorScheme.onBackground)
+                }
+            } else {
+                // Item Image
+                if (!item.itemImageUrl.isNullOrEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(300.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        AsyncImage(
+                            model = item.itemImageUrl,
+                            contentDescription = item.itemName,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
-                    AsyncImage(
-                        model = item.itemImageUrl,
-                        contentDescription = item.itemName,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Fit
-                    )
+                    Column(modifier = Modifier.padding(24.dp)) {
+                        DetailRow("Item Name", item.itemName)
+                        DetailRow("SKU", item.itemSku)
+                        DetailRow("Category", categoryName)
+                        DetailRow("Supplier", supplierName)
+                        DetailRow("Price", "RM ${String.format(Locale.US, "%.2f", item.itemPrice)}")
+                        DetailRow("Stock Quantity", item.itemStockQuantity.toString())
+                        DetailRow("Min. Stock Level", item.itemMinStockLevel.toString())
+                        DetailRow("Description", item.itemReference ?: "None")
+                        DetailRow("Created At", formatTimestamp(item.createdAt))
+                        DetailRow("Updated At", formatTimestamp(item.updatedAt))
+                    }
                 }
-                Spacer(modifier = Modifier.height(24.dp))
-            }
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FA))
-            ) {
-                Column(modifier = Modifier.padding(24.dp)) {
-                    DetailRow("Item Name", item.itemName)
-                    DetailRow("SKU", item.itemSku)
-                    DetailRow("Category", categoryName)
-                    DetailRow("Supplier", supplierName)
-                    DetailRow("Price", "RM ${String.format(Locale.US, "%.2f", item.itemPrice)}")
-                    DetailRow("Stock Quantity", item.itemStockQuantity.toString())
-                    DetailRow("Min. Stock Level", item.itemMinStockLevel.toString())
-                    DetailRow("Description", item.itemReference ?: "None")
-                    DetailRow("Created At", formatTimestamp(item.createdAt))
-                    DetailRow("Updated At", formatTimestamp(item.updatedAt))
+                Spacer(modifier = Modifier.height(32.dp))
+
+                Button(
+                    onClick = { navController.navigate("edit_item/${item.itemId}") },
+                    modifier = Modifier.fillMaxWidth().height(55.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text("Edit Item", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                 }
+                
+                Spacer(modifier = Modifier.height(16.dp))
             }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Button(
-                onClick = { navController.navigate("edit_item/${item.itemId}") },
-                modifier = Modifier.fillMaxWidth().height(55.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Text("Edit Item", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
 @Composable
-private fun DetailRow(label: String, value: String, textColor: Color = Color.Black) {
+private fun DetailRow(label: String, value: String, textColor: Color = MaterialTheme.colorScheme.onSurface) {
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
-        Text(label, color = Color.Gray, fontSize = 14.sp)
+        Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
         Text(value, color = textColor, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
     }
 }

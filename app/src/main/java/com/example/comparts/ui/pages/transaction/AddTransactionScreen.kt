@@ -55,29 +55,34 @@ fun AddTransactionScreen(
         userId = user?.id
     }
 
-    val fieldColor = Color(0xFF5A75FF)
-    val textColor = Color.White
+    val fieldColor = MaterialTheme.colorScheme.surfaceVariant
+    val textColor = MaterialTheme.colorScheme.onSurface
     val currentTimestamp = SimpleDateFormat("d MMMM yyyy - hh:mm a", Locale.getDefault()).format(Date())
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
                 .padding(paddingValues)
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 24.dp, top = 8.dp)) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", modifier = Modifier.clickable { navController.popBackStack() })
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack, 
+                    contentDescription = "Back", 
+                    modifier = Modifier.clickable { navController.popBackStack() },
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
                 Spacer(modifier = Modifier.width(16.dp))
-                Text("Record Transaction", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Text("Record Transaction", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             }
 
             // Searchable Part Selection
-            Text(text = "Part*", color = Color.Gray, fontSize = 14.sp, modifier = Modifier.padding(bottom = 4.dp))
+            Text(text = "Part*", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp, modifier = Modifier.padding(bottom = 4.dp))
             ExposedDropdownMenuBox(
                 expanded = partExpanded,
                 onExpandedChange = { partExpanded = it },
@@ -90,7 +95,7 @@ fun AddTransactionScreen(
                         selectedItemId = null 
                         partExpanded = true 
                     },
-                    placeholder = { Text("Search and Select Part", color = textColor.copy(alpha = 0.6f)) },
+                    placeholder = { Text("Search and Select Part", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
                     modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable).fillMaxWidth(),
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = partExpanded) },
                     colors = OutlinedTextFieldDefaults.colors(
@@ -129,15 +134,15 @@ fun AddTransactionScreen(
 
             // Timestamp (Read-only)
             Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-                Text(text = "Timestamp", color = Color.Gray, fontSize = 14.sp, modifier = Modifier.padding(bottom = 4.dp))
+                Text(text = "Timestamp", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp, modifier = Modifier.padding(bottom = 4.dp))
                 Surface(
                     color = fieldColor,
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text(text = currentTimestamp, color = textColor)
-                        Text(text = "Auto-recorded on save", color = textColor.copy(alpha = 0.6f), fontSize = 12.sp)
+                        Text(text = currentTimestamp, color = MaterialTheme.colorScheme.onSurface)
+                        Text(text = "Auto-recorded on save", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                     }
                 }
             }
@@ -159,21 +164,21 @@ fun AddTransactionScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxHeight()
-                                .background(if (transactionType == "IN") Color.White.copy(alpha = 0.3f) else Color.Transparent)
+                                .background(if (transactionType == "IN") MaterialTheme.colorScheme.primary.copy(alpha = 0.3f) else Color.Transparent)
                                 .clickable { transactionType = "IN" },
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("Stock In", color = if (transactionType == "IN") Color.White else Color.White.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
+                            Text("Stock In", color = if (transactionType == "IN") MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
                         }
                         Box(
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxHeight()
-                                .background(if (transactionType == "OUT") Color.White.copy(alpha = 0.3f) else Color.Transparent)
+                                .background(if (transactionType == "OUT") MaterialTheme.colorScheme.primary.copy(alpha = 0.3f) else Color.Transparent)
                                 .clickable { transactionType = "OUT" },
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("Stock Out", color = if (transactionType == "OUT") Color.White else Color.White.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
+                            Text("Stock Out", color = if (transactionType == "OUT") MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -215,13 +220,13 @@ fun AddTransactionScreen(
                 },
                 enabled = userId != null && !isSaving,
                 modifier = Modifier.fillMaxWidth().height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF000080)),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(24.dp)
             ) {
                 if (userId == null || isSaving) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
                 } else {
-                    Text("Add Record", fontSize = 16.sp, color = Color.White)
+                    Text("Add Record", fontSize = 16.sp, color = MaterialTheme.colorScheme.onPrimary)
                 }
             }
         }

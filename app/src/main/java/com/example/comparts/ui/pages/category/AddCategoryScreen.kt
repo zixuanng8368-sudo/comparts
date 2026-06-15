@@ -33,24 +33,29 @@ fun AddCategoryScreen(navController: NavController, viewModel: CategoryViewModel
     val scope = rememberCoroutineScope()
     var isSaving by remember { mutableStateOf(false) }
 
-    val fieldColor = Color(0xFF5A75FF)
-    val textColor = Color.White
+    val fieldColor = MaterialTheme.colorScheme.surfaceVariant
+    val textColor = MaterialTheme.colorScheme.onSurface
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
                 .padding(paddingValues)
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 24.dp, top = 8.dp)) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", modifier = Modifier.clickable { navController.popBackStack() } )
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack, 
+                    contentDescription = "Back", 
+                    modifier = Modifier.clickable { navController.popBackStack() },
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
                 Spacer(modifier = Modifier.width(16.dp))
-                Text("Add New Category", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Text("Add New Category", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
             }
 
             BlueTextField(value = categoryName, onValueChange = { categoryName = it }, label = "Category Name*", placeholder = "Enter name", bgColor = fieldColor, textColor = textColor)
@@ -81,13 +86,13 @@ fun AddCategoryScreen(navController: NavController, viewModel: CategoryViewModel
                 },
                 enabled = !isSaving,
                 modifier = Modifier.fillMaxWidth().height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF000080)),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(24.dp)
             ) {
                 if (isSaving) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
                 } else {
-                    Text("Add Category", fontSize = 16.sp, color = Color.White)
+                    Text("Add Category", fontSize = 16.sp, color = MaterialTheme.colorScheme.onPrimary)
                 }
             }
 
@@ -96,10 +101,10 @@ fun AddCategoryScreen(navController: NavController, viewModel: CategoryViewModel
             Button(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier.fillMaxWidth().height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4C4C)),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                 shape = RoundedCornerShape(24.dp)
             ) {
-                Text("Cancel", fontSize = 16.sp, color = Color.White)
+                Text("Cancel", fontSize = 16.sp, color = MaterialTheme.colorScheme.onError)
             }
         }
     }

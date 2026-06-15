@@ -2,6 +2,7 @@ package com.example.comparts.ui.pages.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -16,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -25,6 +28,7 @@ import com.example.comparts.viewmodel.ItemViewModel
 import com.example.comparts.viewmodel.SupplierViewModel
 import com.example.comparts.viewmodel.TransactionViewModel
 import com.example.comparts.viewmodel.AuthViewModel
+import kotlinx.coroutines.launch
 import java.util.Locale
 
 @Composable
@@ -45,8 +49,10 @@ fun HomeScreen(
     val lowInStockCount = lowStockList.size
     val totalInventoryValue = items.sumOf { it.itemPrice * it.itemStockQuantity }
 
-    val primaryBlue = Color(0xFF4A61F7)
     val context = androidx.compose.ui.platform.LocalContext.current
+    val scrollState = rememberScrollState()
+    val scope = rememberCoroutineScope()
+    var alertsSectionY by remember { mutableFloatStateOf(0f) }
 
     // Low Stock Notification Logic (System Alert)
     LaunchedEffect(lowInStockCount) {
@@ -56,13 +62,13 @@ fun HomeScreen(
     }
 
     Scaffold(
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(16.dp)
         ) {
             // A. Header
@@ -76,12 +82,12 @@ fun HomeScreen(
                         text = "Dashboard",
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
                         text = "Good Morning, Operator!",
                         fontSize = 14.sp,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -93,7 +99,7 @@ fun HomeScreen(
                                 }
                             }
                         ) {
-                            Icon(Icons.Default.Notifications, contentDescription = "Notifications", tint = primaryBlue)
+                            Icon(Icons.Default.Notifications, contentDescription = "Notifications", tint = MaterialTheme.colorScheme.primary)
                         }
                     }
                     Spacer(modifier = Modifier.width(8.dp))
@@ -102,13 +108,13 @@ fun HomeScreen(
                             .size(48.dp)
                             .clickable { navController.navigate("profile") },
                         shape = CircleShape,
-                        color = Color(0xFFF0F0F0)
+                        color = MaterialTheme.colorScheme.surfaceVariant
                     ) {
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = "Profile",
                             modifier = Modifier.padding(8.dp),
-                            tint = primaryBlue
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -122,28 +128,35 @@ fun HomeScreen(
                     MetricCard(
                         title = "Total Parts",
                         value = totalPartTypes.toString(),
-                        containerColor = Color(0xFFE8EAF6),
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
                         modifier = Modifier.weight(1f)
                     )
                     MetricCard(
                         title = "Low In Stock",
                         value = lowInStockCount.toString(),
-                        containerColor = if (lowInStockCount > 0) Color(0xFFFFEBEE) else Color(0xFFE8F5E9),
+                        containerColor = if (lowInStockCount > 0) Color(0xFFFFEBEE).copy(alpha = if(isSystemInDarkTheme()) 0.2f else 1f) else Color(0xFFE8F5E9).copy(alpha = if(isSystemInDarkTheme()) 0.2f else 1f),
                         valueColor = if (lowInStockCount > 0) Color(0xFFFF4C4C) else Color(0xFF00C853),
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            if (lowInStockCount > 0) {
+                                scope.launch {
+                                    scrollState.animateScrollTo(alertsSectionY.toInt())
+                                }
+                            }
+                        }
                     )
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     MetricCard(
                         title = "Total Value",
                         value = "RM ${String.format(Locale.US, "%.2f", totalInventoryValue)}",
-                        containerColor = Color(0xFFE1F5FE),
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
                         modifier = Modifier.weight(1f)
                     )
                     MetricCard(
                         title = "Suppliers",
                         value = suppliers.size.toString(),
-                        containerColor = Color(0xFFF3E5F5),
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -152,12 +165,12 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // C. Quick Actions
-            Text("Quick Actions", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
+            Text("Quick Actions", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp), color = MaterialTheme.colorScheme.onBackground)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                QuickActionButton("Add Item", Icons.Default.Add, primaryBlue) { navController.navigate("add_item") }
+                QuickActionButton("Add Item", Icons.Default.Add, MaterialTheme.colorScheme.primary) { navController.navigate("add_item") }
                 QuickActionButton("Transaction", Icons.Default.SwapHoriz, Color(0xFF00C853)) { navController.navigate("transaction") }
                 QuickActionButton("Supplier", Icons.Default.LocalShipping, Color(0xFFFF9800)) { navController.navigate("add_supplier") }
             }
@@ -167,7 +180,17 @@ fun HomeScreen(
             // D. Low Stock Alerts
             val alertItems = lowStockList.take(3)
             if (alertItems.isNotEmpty()) {
-                Text("Low Stock Alerts", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
+                Text(
+                    "Low Stock Alerts", 
+                    fontSize = 18.sp, 
+                    fontWeight = FontWeight.Bold, 
+                    modifier = Modifier
+                        .padding(bottom = 12.dp)
+                        .onGloballyPositioned { coordinates ->
+                            alertsSectionY = coordinates.positionInParent().y
+                        }, 
+                    color = MaterialTheme.colorScheme.onBackground
+                )
                 alertItems.forEach { item ->
                     com.example.comparts.ui.components.InventoryCard(
                         category = "Part",
@@ -177,7 +200,7 @@ fun HomeScreen(
                         quantity = item.itemStockQuantity.toString(),
                         stockStatus = if (item.itemStockQuantity == 0) "OUT OF STOCK" else "LOW STOCK",
                         badgeColor = Color(0xFFFF4C4C),
-                        cardColor = primaryBlue,
+                        cardColor = MaterialTheme.colorScheme.primary,
                         imageUrl = item.itemImageUrl,
                         onClick = { navController.navigate("item_detail/${item.itemId}") }
                     )
@@ -186,11 +209,11 @@ fun HomeScreen(
             }
 
             // E. Weekly Transaction Flow
-            Text("Weekly Flow", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
+            Text("Weekly Flow", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp), color = MaterialTheme.colorScheme.onBackground)
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -202,9 +225,9 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(Color(0xFF00C853)))
-                        Text(" Stock In", fontSize = 12.sp, color = Color.Gray, modifier = Modifier.padding(end = 16.dp))
+                        Text(" Stock In", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(end = 16.dp))
                         Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(Color(0xFFFF4C4C)))
-                        Text(" Stock Out", fontSize = 12.sp, color = Color.Gray)
+                        Text(" Stock Out", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -212,10 +235,10 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // F. Recent Activity List
-            Text("Recent Activity", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
+            Text("Recent Activity", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp), color = MaterialTheme.colorScheme.onBackground)
             val recentTransactions = transactions.take(3)
             if (recentTransactions.isEmpty()) {
-                Text("No recent transactions", color = Color.Gray, fontSize = 14.sp)
+                Text("No recent transactions", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
             } else {
                 recentTransactions.forEach { transaction ->
                     RecentActivityItem(transaction, items.find { it.itemId == transaction.itemId }?.itemName ?: "Unknown Item")
@@ -229,16 +252,23 @@ fun HomeScreen(
 }
 
 @Composable
-fun MetricCard(title: String, value: String, containerColor: Color, modifier: Modifier = Modifier, valueColor: Color = Color.Black) {
+fun MetricCard(
+    title: String, 
+    value: String, 
+    containerColor: Color, 
+    modifier: Modifier = Modifier, 
+    valueColor: Color = Color.Unspecified,
+    onClick: (() -> Unit)? = null
+) {
     Card(
-        modifier = modifier,
+        modifier = if (onClick != null) modifier.clickable { onClick() } else modifier,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = containerColor)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(title, fontSize = 12.sp, color = Color.Gray, fontWeight = FontWeight.Medium)
+            Text(title, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Medium)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(value, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = valueColor)
+            Text(value, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = if(valueColor == Color.Unspecified) MaterialTheme.colorScheme.onSurface else valueColor)
         }
     }
 }
@@ -256,7 +286,7 @@ fun QuickActionButton(label: String, icon: ImageVector, color: Color, onClick: (
         ) {
             Icon(icon, contentDescription = label, tint = color)
         }
-        Text(label, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp), fontWeight = FontWeight.Medium)
+        Text(label, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp), fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onBackground)
     }
 }
 
@@ -268,7 +298,7 @@ fun RecentActivityItem(transaction: com.example.comparts.data.model.Transaction,
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -295,12 +325,12 @@ fun RecentActivityItem(transaction: com.example.comparts.data.model.Transaction,
                     text = if (isIncoming) "Stock In" else "Stock Out",
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = itemName,
                     fontSize = 13.sp,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
